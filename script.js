@@ -1,10 +1,8 @@
 import { egitim } from './egitim.js';
 
-// DOMContentLoaded olayını bekleyerek elementlerin hazır olduğundan emin olalım
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOMContentLoaded yüklendi. Uygulama başlatılıyor...");
 
-    // DOM elementlerini güvenli bir şekilde seç
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatArea = document.getElementById('chatArea');
@@ -14,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const callNetlifyBtn = document.getElementById('callNetlifyBtn');
     const netlifyResult = document.getElementById('netlifyResult');
 
-    // Elementlerin varlığını kontrol et
     if (!chatInput) console.error("Hata: 'chatInput' elementi bulunamadı!");
     if (!sendMessageBtn) console.error("Hata: 'sendMessageBtn' elementi bulunamadı!");
     if (!chatArea) console.error("Hata: 'chatArea' elementi bulunamadı!");
@@ -24,37 +21,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!callNetlifyBtn) console.error("Hata: 'callNetlifyBtn' elementi bulunamadı!");
     if (!netlifyResult) console.error("Hata: 'netlifyResult' elementi bulunamadı!");
 
-    // Mesaj gönderme fonksiyonu
     async function sendMessage() {
         console.log("sendMessage fonksiyonu çağrıldı.");
-        if (!chatInput) {
-            console.error("sendMessage: chatInput elementi mevcut değil.");
-            return;
-        }
+        if (!chatInput) return;
         const userMessage = chatInput.value.trim();
-        if (userMessage === '') {
-            console.log("Boş mesaj gönderilmeye çalışıldı.");
-            return;
-        }
+        if (userMessage === '') return;
 
         displayMessage(userMessage, 'user');
         chatInput.value = '';
+        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
 
-        if (chatArea) {
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
+        let aiResponse = "Yanıt alınamadı.";
 
-        let aiResponse = "Yanıt alınamadı."; // Varsayılan hata mesajı
-
-        // Netlify fonksiyonunu çağır ve kullanıcı mesajını gönder
-        console.log("Netlify fonksiyonu çağrılıyor (kullanıcı mesajı ile)...");
         try {
             const res = await fetch('/.netlify/functions/hello', {
-                method: 'POST', // POST isteği kullan
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userMessage: userMessage }) // Kullanıcı mesajını JSON olarak gönder
+                body: JSON.stringify({ message: userMessage }) // ✅ Doğru isimle gönderiyoruz
             });
 
             if (!res.ok) {
@@ -63,30 +48,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await res.json();
-            // Fonksiyondan gelen mesajı AI yanıtı olarak kullan
-            aiResponse = data.message || "Netlify fonksiyonundan boş yanıt geldi.";
+            aiResponse = data.reply || "Netlify fonksiyonundan boş yanıt geldi.";
             console.log("Netlify fonksiyon yanıtı:", aiResponse);
         } catch (error) {
             console.error("Netlify fonksiyonu çağrılırken hata oluştu:", error);
             aiResponse = `Netlify fonksiyonu çağrılırken hata oluştu: ${error.message}`;
         }
 
-        // AI yanıtını göster (küçük bir gecikmeyle daha doğal görünmesi için)
         setTimeout(() => {
             displayMessage(aiResponse, 'ai');
-            if (chatArea) {
-                chatArea.scrollTop = chatArea.scrollHeight;
-            }
+            if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
         }, 700);
     }
 
-    // Mesajı sohbet alanına ekleyen fonksiyon
     function displayMessage(message, sender) {
-        console.log(`displayMessage çağrıldı: ${message} (${sender})`);
-        if (!chatArea) {
-            console.error("displayMessage: chatArea elementi mevcut değil.");
-            return;
-        }
+        if (!chatArea) return;
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('flex', 'mb-4');
 
@@ -105,30 +81,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }
+
         chatArea.appendChild(messageDiv);
     }
 
-    // Modlar panelini açıp kapatan fonksiyon
     function toggleModesPanel() {
-        console.log("Modlar düğmesine tıklandı!");
-        if (!modesPanel) {
-            console.error("toggleModesPanel: modesPanel elementi mevcut değil.");
-            return;
-        }
+        if (!modesPanel) return;
         modesPanel.classList.toggle('hidden');
-        
+
         if (!modesPanel.classList.contains('hidden') && modesContent && modesContent.innerHTML.includes("yükleniyor")) {
             loadModesContent();
         }
     }
 
-    // Eğitim dosyasındaki mod bilgilerini yükleyen fonksiyon
     function loadModesContent() {
-        console.log("Mod içeriği yükleniyor...");
-        if (!modesContent) {
-            console.error("loadModesContent: modesContent elementi mevcut değil.");
-            return;
-        }
+        if (!modesContent) return;
         modesContent.innerHTML = '';
 
         const projectDesc = document.createElement('p');
@@ -180,41 +147,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Netlify fonksiyonunu çağıran fonksiyon (Modlar panelindeki buton için)
     async function callNetlifyFunction() {
-        console.log("Netlify fonksiyonu çağrılıyor (buton aracılığıyla)...");
-        if (!netlifyResult) {
-            console.error("callNetlifyFunction: netlifyResult elementi mevcut değil.");
-            return;
-        }
+        if (!netlifyResult) return;
         netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
         try {
-            // Bu buton için sadece bir GET isteği yapabiliriz, çünkü kullanıcı mesajı göndermiyor
             const res = await fetch('/.netlify/functions/hello', {
-                method: 'GET' // Bu buton için GET metodu kullan
+                method: 'GET'
             });
             const data = await res.json();
             netlifyResult.textContent = JSON.stringify(data, null, 2);
         } catch (error) {
-            netlifyResult.textContent = `Hata: ${error.message}. Netlify fonksiyonunun çalıştığından emin olun.`;
+            netlifyResult.textContent = `Hata: ${error.message}`;
             console.error("Netlify fonksiyonu çağrılırken hata oluştu:", error);
         }
     }
 
-    // Olay dinleyicilerini ekle
     if (sendMessageBtn) {
         sendMessageBtn.addEventListener('click', sendMessage);
-        console.log("sendMessageBtn için click listener eklendi.");
     }
     if (modesToggle) {
         modesToggle.addEventListener('click', toggleModesPanel);
-        console.log("modesToggle için click listener eklendi.");
     }
     if (callNetlifyBtn) {
         callNetlifyBtn.addEventListener('click', callNetlifyFunction);
-        console.log("callNetlifyBtn için click listener eklendi.");
     }
 
-    // Mod içeriğini sayfa yüklendiğinde bir kez yükle
     loadModesContent();
 });
