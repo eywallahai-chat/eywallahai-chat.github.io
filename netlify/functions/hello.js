@@ -1,9 +1,6 @@
-exports.handler = async () => {
+export async function handler(event, context) {
   return {
     statusCode: 200,
-    body: JSON.stringify({
-      message: "Eywallah, Netlify Function çalıştı!",
-      timestamp: new Date().toISOString()
-    }),
+    body: JSON.stringify({ message: "Selam kanka, Netlify fonksiyonundan geldim!" }),
   };
-};
+}
