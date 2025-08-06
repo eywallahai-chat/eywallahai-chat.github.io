@@ -2,39 +2,41 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Eywallah AI - Orion 1 Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eywallah AI - Orion 1 ChatGPT Style</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="eywallah_ai_logo.png" />
 </head>
 <body>
-  <header class="chat-header">
-    <h1 class="chat-title">Eywallah AI - Orion 1</h1>
-    <p class="chat-subtitle">Senin zekânın dijital yansıması ✨</p>
-  </header>
+  <div class="container">
+    <!-- Sol: Sohbet Listesi -->
+    <aside class="sidebar">
+      <h2>📜 Sohbetler</h2>
+      <ul id="chat-list" class="chat-list"></ul>
+    </aside>
 
-  <main class="chat-main">
-    <div class="chat-output" id="chat-output"></div>
-    <form id="chat-form" class="chat-form">
-      <textarea id="user-input" placeholder="Bir şey yazın..." required></textarea>
-      <button type="submit">Gönder</button>
-    </form>
-  </main>
+    <!-- Orta: Chat Ana Alan -->
+    <main class="chat-area">
+      <div id="chat-output" class="chat-output"></div>
+      
+      <div class="input-area">
+        <button id="mod-toggle" class="mod-btn">🎛 Modlar</button>
+        <textarea id="user-input" placeholder="Bir şey yaz..." rows="2"></textarea>
+        <button id="send-btn" class="send-btn">Gönder</button>
+      </div>
+      
+      <button id="new-chat" class="new-chat-btn">🗑 Yeni Sohbet</button>
+    </main>
 
-  <footer class="chat-footer">
-    <button class="footer-btn" onclick="newChat()">🗑 Yeni Sohbet</button>
-    <button class="footer-btn" onclick="toggleModMenu()">🎛 Modlar</button>
-    <button class="footer-btn" onclick="alert('Ayarlar yakında!')">⚙️ Ayarlar</button>
-  </footer>
-
-  <!-- Mod Seçimi -->
-  <div class="mod-menu" id="mod-menu">
-    <h3>Mod Seç:</h3>
-    <button onclick="setMode('egitim')">🧠 Eğitim</button>
-    <button onclick="setMode('oyun')">🎮 Oyun</button>
-    <button onclick="setMode('ilmi')">📿 İlmi</button>
-    <button onclick="setMode('dev')">💻 Geliştirici</button>
-    <button onclick="toggleModMenu()">Kapat</button>
+    <!-- Sağ Alt: Mod Menüsü -->
+    <div id="mod-menu" class="mod-menu hidden">
+      <h3>Mod Seç:</h3>
+      <button data-mode="egitim">🧠 Eğitim</button>
+      <button data-mode="oyun">🎮 Oyun</button>
+      <button data-mode="ilmi">📿 İlmi</button>
+      <button data-mode="dev">💻 Geliştirici</button>
+      <button id="close-mod">Kapat</button>
+    </div>
   </div>
 
   <script src="chat.js"></script>
