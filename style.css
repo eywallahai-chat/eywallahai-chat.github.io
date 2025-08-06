@@ -1,53 +1,53 @@
 body {
-  margin: 0;
-  padding: 0;
-  background-color: #0F0F0F;
-  color: #F2F2F2;
-  font-family: 'Inter', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #0F0F0F; /* Koyu arka plan */
+    color: #F2F2F2; /* Açık metin rengi */
+    font-family: 'Inter', sans-serif; /* Inter fontu */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 }
 
 main {
-  text-align: center;
+    text-align: center;
 }
 
 h1 {
-  font-size: 3.5rem;
-  font-weight: 800;
-  letter-spacing: -1px;
-  margin-bottom: 0.5rem;
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
 }
 
 p {
-  font-size: 1.2rem;
-  font-weight: 400;
-  margin-bottom: 2rem;
-  color: #A0A0A0;
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    color: #A0A0A0; /* Gri tonlu paragraf metni */
 }
 
 button {
-  background-color: #00FFB3;
-  color: #0F0F0F;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    background-color: #00FFB3; /* Parlak zümrüt yeşili */
+    color: #0F0F0F; /* Koyu metin rengi */
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px; /* Yuvarlak köşeler */
+    cursor: pointer;
+    transition: all 0.3s ease; /* Yumuşak geçişler */
 }
 
 button:hover {
-  background-color: #00e5a0;
+    background-color: #00e5a0; /* Hover rengi */
 }
 
 pre {
-  margin-top: 2rem;
-  background-color: #1a1a1a;
-  padding: 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+    margin-top: 2rem;
+    background-color: #1a1a1a; /* Koyu gri arka plan */
+    padding: 1rem;
+    border-radius: 8px; /* Yuvarlak köşeler */
+    font-size: 0.9rem;
 }
