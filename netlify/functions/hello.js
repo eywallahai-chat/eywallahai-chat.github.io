@@ -1,10 +1,12 @@
 export async function handler(event, context) {
-  const apiKey = process.env.Eywallah_AI_Orion; // Netlify env variable
+  const apiKey = process.env.Eywallah_AI_Orion; // Netlify ortam değişkeni
 
+  // İstek gövdesini JSON olarak oku
   const requestBody = JSON.parse(event.body || "{}");
   const userMessage = requestBody.message || "Selam!";
 
   try {
+    // DeepInfra API'ye POST isteği gönder
     const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
       method: "POST",
       headers: {
@@ -33,16 +35,22 @@ Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde 
       })
     });
 
+    // API cevabını JSON olarak al
     const data = await response.json();
+
+    // Logla, deploy sonrası Netlify'de görürsün
     console.log("API cevabı:", JSON.stringify(data, null, 2));
 
+    // Gelen yanıtı al, yoksa varsayılan mesajı kullan
     const assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bi daha dene kardeşim.";
 
+    // Başarılı yanıtla dön
     return {
       statusCode: 200,
       body: JSON.stringify({ reply: assistantMessage })
     };
   } catch (error) {
+    // Hata varsa logla ve hata mesajı döndür
     console.error("Hata:", error);
     return {
       statusCode: 500,
@@ -50,4 +58,4 @@ Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde 
     };
   }
 }
-            
+                                      
