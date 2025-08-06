@@ -3,17 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Eywallah AI Orion 1</title>
+  <title>Eywallah AI</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main>
-    <h1>Eywallah AI Orion 1</h1>
-    <p>Sade. Güçlü. Zekâ dolu.</p>
-    <button onclick="callFunction()">Fonksiyonu Çağır</button>
-    <pre id="result">Bekleniyor...</pre>
-  </main>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h1>Eywallah AI</h1>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="message system">Merhaba! Eywallah AI'a hoş geldin. Bir şeyler yaz bakalım...</div>
+    </div>
+
+    <div class="chat-input">
+      <div class="left-placeholder">Modlar</div>
+      <input type="text" id="user-input" placeholder="Bir mesaj yaz..." />
+      <button onclick="sendMessage()">Gönder</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
