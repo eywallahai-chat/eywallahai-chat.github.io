@@ -46,10 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let aiResponse = "Yanıt alınamadı."; // Varsayılan hata mesajı
 
-        // Her zaman Netlify fonksiyonunu çağır
-        console.log("Netlify fonksiyonu çağrılıyor...");
+        // Netlify fonksiyonunu çağır ve kullanıcı mesajını gönder
+        console.log("Netlify fonksiyonu çağrılıyor (kullanıcı mesajı ile)...");
         try {
-            const res = await fetch('/.netlify/functions/hello');
+            const res = await fetch('/.netlify/functions/hello', {
+                method: 'POST', // POST isteği kullan
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userMessage: userMessage }) // Kullanıcı mesajını JSON olarak gönder
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(`Netlify fonksiyon hatası: ${res.status} - ${errorData.message}`);
+            }
+
             const data = await res.json();
             // Fonksiyondan gelen mesajı AI yanıtı olarak kullan
             aiResponse = data.message || "Netlify fonksiyonundan boş yanıt geldi.";
@@ -177,7 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
         try {
-            const res = await fetch('/.netlify/functions/hello');
+            // Bu buton için sadece bir GET isteği yapabiliriz, çünkü kullanıcı mesajı göndermiyor
+            const res = await fetch('/.netlify/functions/hello', {
+                method: 'GET' // Bu buton için GET metodu kullan
+            });
             const data = await res.json();
             netlifyResult.textContent = JSON.stringify(data, null, 2);
         } catch (error) {
