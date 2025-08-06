@@ -11,7 +11,7 @@ export async function handler(event, context) {
       "Authorization": `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: "r1", // OpenRouter seçsin: hızlı, iyi, ucuz
+      model: "r1",
       messages: [
         {
           role: "system",
