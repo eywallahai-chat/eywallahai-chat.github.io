@@ -8,6 +8,18 @@ export async function handler(event, context) {
         };
     }
 
+    // API anahtarını Netlify ortam değişkenlerinden al
+    // Artık API anahtarı için 'Eywallah_AI_Orion' ortam değişkeni kullanılacak.
+    const apiKey = process.env.Eywallah_AI_Orion; // Netlify'de tanımladığınız ortam değişkeni adı
+
+    if (!apiKey) {
+        console.error("API Anahtarı bulunamadı! Lütfen Netlify ortam değişkenlerini kontrol edin.");
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Sunucu hatası: API anahtarı yapılandırılmamış. Lütfen Netlify ortam değişkenlerinizi kontrol edin." }),
+        };
+    }
+
     let userMessage = "Merhaba!"; // Varsayılan mesaj
 
     try {
@@ -25,7 +37,6 @@ export async function handler(event, context) {
     chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
 
     const payload = { contents: chatHistory };
-    const apiKey = ""; // Canvas ortamında boş bırakılacak, çalışma zamanında sağlanır.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     try {
