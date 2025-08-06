@@ -3,40 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Eywallah AI - Orion 1 ChatGPT Style</title>
+  <title>Eywallah AI - Orion 1</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="eywallah_ai_logo.png" />
 </head>
 <body>
-  <div class="container">
-    <!-- Sol: Sohbet Listesi -->
+  <div class="app-container">
+    <!-- Sol Menü -->
     <aside class="sidebar">
       <h2>📜 Sohbetler</h2>
-      <ul id="chat-list" class="chat-list"></ul>
+      <ul id="chat-list"></ul>
     </aside>
 
-    <!-- Orta: Chat Ana Alan -->
-    <main class="chat-area">
+    <!-- Ana Chat Alanı -->
+    <main class="chat-main">
       <div id="chat-output" class="chat-output"></div>
-      
-      <div class="input-area">
-        <button id="mod-toggle" class="mod-btn">🎛 Modlar</button>
-        <textarea id="user-input" placeholder="Bir şey yaz..." rows="2"></textarea>
-        <button id="send-btn" class="send-btn">Gönder</button>
-      </div>
-      
-      <button id="new-chat" class="new-chat-btn">🗑 Yeni Sohbet</button>
-    </main>
 
-    <!-- Sağ Alt: Mod Menüsü -->
-    <div id="mod-menu" class="mod-menu hidden">
-      <h3>Mod Seç:</h3>
-      <button data-mode="egitim">🧠 Eğitim</button>
-      <button data-mode="oyun">🎮 Oyun</button>
-      <button data-mode="ilmi">📿 İlmi</button>
-      <button data-mode="dev">💻 Geliştirici</button>
-      <button id="close-mod">Kapat</button>
-    </div>
+      <div class="chat-input-area">
+        <button id="mod-toggle">🎛</button>
+        <textarea id="user-input" placeholder="Mesaj yaz..."></textarea>
+        <button id="send-btn">Gönder</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Mod Menüsü -->
+  <div id="mod-menu" class="mod-menu hidden">
+    <h3>Mod Seç</h3>
+    <button data-mode="egitim">🧠 Eğitim</button>
+    <button data-mode="oyun">🎮 Oyun</button>
+    <button data-mode="ilmi">📿 İlmi</button>
+    <button data-mode="dev">💻 Geliştirici</button>
+    <button onclick="toggleModMenu()">Kapat</button>
   </div>
 
   <script src="chat.js"></script>
