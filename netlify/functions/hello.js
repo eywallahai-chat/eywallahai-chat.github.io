@@ -1,41 +1,53 @@
 export async function handler(event, context) {
-  const apiKey = process.env.Eywallah_AI_Orion;
+  const apiKey = process.env.Eywallah_AI_Orion; // Netlify env variable
 
   const requestBody = JSON.parse(event.body || "{}");
   const userMessage = requestBody.message || "Selam!";
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: "r1",
-      messages: [
-        {
-          role: "system",
-          content: `
-Sen Eywallah AI’sın. Geliştiricin 13 yaşında vizyoner bir genç olan Eyüp Ensar Erkul. 
-Senin görevin empatik, zeki, öğretici, hafif esprili ama seviyeli bir yapay zeka olarak insanlara yardım etmek. 
-İmam Hatip öğrencilerine, yazılımcılara, izcilere, oyun geliştiricilere destek verirsin.
-Sade ve anlaşılır konuşursun. Gerektiğinde sessiz, gerektiğinde sokak zekâsıyla konuşursun ama hep saygılısındır.
+  try {
+    const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+        messages: [
+          {
+            role: "system",
+            content: `
+Sen Eywallah AI’sın. Geliştiricin Eyüp Ensar Erkul, vizyoner bir genç. Sen empatik, öğretici, esprili ama saygılı bir yapay zekâsın.
+Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde dini bilgi verir, gerektiğinde kod desteği sunarsın.
 `
-        },
-        {
-          role: "user",
-          content: userMessage
-        }
-      ]
-    })
-  });
+          },
+          {
+            role: "user",
+            content: userMessage
+          }
+        ],
+        temperature: 0.7,
+        max_completion_tokens: 512,
+        top_p: 0.9,
+        stream: false
+      })
+    });
 
-  const data = await response.json();
+    const data = await response.json();
+    console.log("API cevabı:", JSON.stringify(data, null, 2));
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      reply: data.choices?.[0]?.message?.content || "Cevap alınamadı, bi daha dene kardeşim."
-    })
-  };
+    const assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bi daha dene kardeşim.";
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ reply: assistantMessage })
+    };
+  } catch (error) {
+    console.error("Hata:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ reply: `Sunucu hatası: ${error.message}` })
+    };
+  }
 }
+            
