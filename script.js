@@ -44,10 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
             chatArea.scrollTop = chatArea.scrollHeight;
         }
 
-        // AI yanıtını Netlify fonksiyonundan al
         let aiResponse = "Yanıt alınamadı."; // Varsayılan hata mesajı
+
+        // Her zaman Netlify fonksiyonunu çağır
+        console.log("Netlify fonksiyonu çağrılıyor...");
         try {
-            // Netlify fonksiyonunu çağır
             const res = await fetch('/.netlify/functions/hello');
             const data = await res.json();
             // Fonksiyondan gelen mesajı AI yanıtı olarak kullan
