@@ -44,24 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
             chatArea.scrollTop = chatArea.scrollHeight;
         }
 
-        let aiResponse = "Anlıyorum. Bu konuda size nasıl yardımcı olabilirim?";
-        if (userMessage.toLowerCase().includes("selam") || userMessage.toLowerCase().includes("merhaba")) {
-            aiResponse = "Merhaba! Size yardımcı olmaktan mutluluk duyarım.";
-        } else if (userMessage.toLowerCase().includes("nasılsın")) {
-            aiResponse = "Bir yapay zeka olarak duygularım yok ama sorularınızı yanıtlamaya hazırım!";
-        } else if (userMessage.toLowerCase().includes("eywallah ai")) {
-            aiResponse = egitim.projeTanimi;
-        } else if (userMessage.toLowerCase().includes("modlar")) {
-            aiResponse = "Modlar paneline bakarak yeteneklerimi keşfedebilirsiniz!";
-            if (modesPanel && modesPanel.classList.contains('hidden')) {
-                toggleModesPanel();
-            }
-        } else if (userMessage.toLowerCase().includes("kod")) {
-            aiResponse = "Kod yazma ve hata ayıklama konusunda size yardımcı olabilirim. Hangi dilde bir sorunuz var?";
-        } else if (userMessage.toLowerCase().includes("netlify")) {
-            aiResponse = "Netlify fonksiyonunu çağırmak için 'Netlify Fonksiyonu Çağır' düğmesini kullanabilirsiniz.";
+        // AI yanıtını Netlify fonksiyonundan al
+        let aiResponse = "Yanıt alınamadı."; // Varsayılan hata mesajı
+        try {
+            // Netlify fonksiyonunu çağır
+            const res = await fetch('/.netlify/functions/hello');
+            const data = await res.json();
+            // Fonksiyondan gelen mesajı AI yanıtı olarak kullan
+            aiResponse = data.message || "Netlify fonksiyonundan boş yanıt geldi.";
+            console.log("Netlify fonksiyon yanıtı:", aiResponse);
+        } catch (error) {
+            console.error("Netlify fonksiyonu çağrılırken hata oluştu:", error);
+            aiResponse = `Netlify fonksiyonu çağrılırken hata oluştu: ${error.message}`;
         }
 
+        // AI yanıtını göster (küçük bir gecikmeyle daha doğal görünmesi için)
         setTimeout(() => {
             displayMessage(aiResponse, 'ai');
             if (chatArea) {
@@ -170,9 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Netlify fonksiyonunu çağıran fonksiyon
+    // Netlify fonksiyonunu çağıran fonksiyon (Modlar panelindeki buton için)
     async function callNetlifyFunction() {
-        console.log("Netlify fonksiyonu çağrılıyor...");
+        console.log("Netlify fonksiyonu çağrılıyor (buton aracılığıyla)...");
         if (!netlifyResult) {
             console.error("callNetlifyFunction: netlifyResult elementi mevcut değil.");
             return;
