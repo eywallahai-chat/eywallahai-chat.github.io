@@ -12,8 +12,12 @@ const netlifyResult = document.getElementById('netlifyResult');
 
 // Mesaj gönderme fonksiyonu
 async function sendMessage() {
+    console.log("sendMessage fonksiyonu çağrıldı."); // Debugging: Fonksiyonun çağrıldığını kontrol et
     const userMessage = chatInput.value.trim();
-    if (userMessage === '') return;
+    if (userMessage === '') {
+        console.log("Boş mesaj gönderilmeye çalışıldı."); // Debugging: Boş mesajı kontrol et
+        return;
+    }
 
     // Kullanıcı mesajını göster
     displayMessage(userMessage, 'user');
@@ -51,6 +55,7 @@ async function sendMessage() {
 
 // Mesajı sohbet alanına ekleyen fonksiyon
 function displayMessage(message, sender) {
+    console.log(`displayMessage çağrıldı: ${message} (${sender})`); // Debugging: Mesajın görüntülendiğini kontrol et
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('flex', 'mb-4');
 
@@ -74,16 +79,20 @@ function displayMessage(message, sender) {
 
 // Modlar panelini açıp kapatan fonksiyon
 function toggleModesPanel() {
-    modesPanel.classList.toggle('hidden');
-    modesPanel.classList.toggle('flex'); // hidden kaldırıldığında flex yapar
+    console.log("Modlar düğmesine tıklandı!"); // Hata ayıklama için konsol çıktısı
+    modesPanel.classList.toggle('hidden'); // Sadece 'hidden' sınıfını değiştiriyoruz
+    
+    // Modlar paneli açıldığında ve henüz yüklenmediyse bilgileri yükle
+    // Not: İçeriğin 'yükleniyor' metnini içerip içermediğini kontrol etmek,
+    // içeriğin sadece bir kez yüklenmesini sağlar.
     if (!modesPanel.classList.contains('hidden') && modesContent.innerHTML.includes("yükleniyor")) {
-        // Modlar paneli açıldığında ve henüz yüklenmediyse bilgileri yükle
         loadModesContent();
     }
 }
 
 // Eğitim dosyasındaki mod bilgilerini yükleyen fonksiyon
 function loadModesContent() {
+    console.log("Mod içeriği yükleniyor..."); // Debugging: Mod içeriğinin yüklendiğini kontrol et
     modesContent.innerHTML = ''; // İçeriği temizle
 
     const projectDesc = document.createElement('p');
@@ -135,8 +144,9 @@ function loadModesContent() {
     });
 }
 
-// Netlify fonksiyonunu çağıran fonksiyon (kullanıcının sağladığı ile aynı)
+// Netlify fonksiyonunu çağıran fonksiyon
 async function callNetlifyFunction() {
+    console.log("Netlify fonksiyonu çağrılıyor..."); // Debugging: Netlify fonksiyonunun çağrıldığını kontrol et
     netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
     try {
         const res = await fetch('/.netlify/functions/hello');
@@ -149,9 +159,30 @@ async function callNetlifyFunction() {
 }
 
 // Olay dinleyicileri
-sendMessageBtn.addEventListener('click', sendMessage);
-modesToggle.addEventListener('click', toggleModesPanel);
-callNetlifyBtn.addEventListener('click', callNetlifyFunction);
+// DOMContentLoaded olayını bekleyerek elementlerin hazır olduğundan emin olalım
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOMContentLoaded yüklendi. Olay dinleyicileri ekleniyor."); // Debugging: DOM'un yüklendiğini kontrol et
+    if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', sendMessage);
+        console.log("sendMessageBtn için click listener eklendi.");
+    } else {
+        console.error("sendMessageBtn bulunamadı!");
+    }
 
-// Sayfa yüklendiğinde mod içeriğini önceden yükle (gizli kalsa bile hızlı açılma için)
-document.addEventListener('DOMContentLoaded', loadModesContent);
+    if (modesToggle) {
+        modesToggle.addEventListener('click', toggleModesPanel);
+        console.log("modesToggle için click listener eklendi.");
+    } else {
+        console.error("modesToggle bulunamadı!");
+    }
+
+    if (callNetlifyBtn) {
+        callNetlifyBtn.addEventListener('click', callNetlifyFunction);
+        console.log("callNetlifyBtn için click listener eklendi.");
+    } else {
+        console.error("callNetlifyBtn bulunamadı!");
+    }
+
+    // Sayfa yüklendiğinde mod içeriğini önceden yükle (gizli kalsa bile hızlı açılma için)
+    loadModesContent();
+});
