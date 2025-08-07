@@ -1,7 +1,7 @@
 import { egitim } from './egitim.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM içeriği yüklendi. Uygulama başlatılıyor...");
+    console.log("DOM içeriği yüklendi. Uygulama başlatılıyor mu ...");
 
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
@@ -28,6 +28,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof egitim === 'undefined' || !egitim) {
         console.error("Hata: 'egitim.js' modülü yüklenemedi veya boş. Lütfen dosya yolunu ve içeriğini kontrol edin.");
     }
+    
+    // AI yanıtı gelene kadar "yazıyor..." animasyonunu gösterir
+    function displayTypingIndicator() {
+        if (!chatArea) return;
+        const typingIndicatorDiv = document.createElement('div');
+        typingIndicatorDiv.id = 'typingIndicator';
+        typingIndicatorDiv.classList.add('flex', 'justify-start', 'mb-4');
+        typingIndicatorDiv.innerHTML = `
+            <div class="bg-gray-700 text-gray-200 p-3 rounded-xl max-w-xs shadow-md">
+                <span class="dot-flashing"></span>
+            </div>
+        `;
+        chatArea.appendChild(typingIndicatorDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // "Yazıyor..." animasyonunu kaldırır
+    function removeTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
 
     async function sendMessage() {
         console.log("sendMessage fonksiyonu çağrıldı.");
@@ -43,6 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
         chatInput.value = '';
         if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
 
+        // Yazma animasyonunu göster
+        displayTypingIndicator();
+
         let aiResponse = "Yanıt alınamadı.";
 
         try {
@@ -55,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!res.ok) {
-                // Eğer yanıt JSON değilse hata mesajını metin olarak oku
                 const errorText = await res.text();
                 throw new Error(`Netlify fonksiyon hatası: ${res.status} - ${errorText}`);
             }
@@ -67,11 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Netlify fonksiyonu çağrılırken hata oluştu:", error);
             aiResponse = `Netlify fonksiyonu çağrılırken hata oluştu: ${error.message}`;
         }
+        
+        // Animasyonu kaldır ve cevabı göster
+        removeTypingIndicator();
+        displayMessage(aiResponse, 'ai');
+        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
 
-        setTimeout(() => {
-            displayMessage(aiResponse, 'ai');
-            if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-        }, 700);
     }
 
     function displayMessage(message, sender) {
