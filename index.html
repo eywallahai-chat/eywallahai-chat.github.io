@@ -1,46 +1,52 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Eywallah AI – Orion 1</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eywallah AI – Orion 1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body class="bg-gray-950 text-gray-100 flex min-h-screen">
-    <button id="menuToggleBtn" class="fixed top-4 left-4 z-50 lg:hidden">☰</button>
-    
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-buttons space-y-4 mt-16 lg:mt-4">
-            <button id="newChatBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                + Yeni Sohbet
-            </button>
-            <button id="deleteChatBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                🗑 Sohbeti Sil
-            </button>
-        </div>
-        <div id="chatList" class="mt-6 space-y-2"></div>
+  <button id="menuToggleBtn" class="fixed top-4 left-4 z-50 lg:hidden p-2 bg-gray-800 rounded-md">☰</button>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="mt-6">
+      <h2 class="text-xl font-semibold mb-4">Sohbetler</h2>
+      <div class="space-y-3">
+        <button id="newChatBtn" class="w-full bg-emerald-600 text-white py-2 rounded-lg">+ Yeni Sohbet</button>
+        <button id="deleteChatBtn" class="w-full bg-red-600 text-white py-2 rounded-lg">🗑 Aktif Sohbeti Sil</button>
+      </div>
     </div>
 
-    <div class="bg-gray-900 rounded-2xl shadow-2xl flex-1 flex flex-col h-[90vh] overflow-hidden m-4 lg:m-8">
-        <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
-            <h1 class="text-4xl font-extrabold text-white tracking-tight">Eywallah AI <span class="text-emerald-400">Orion 1</span></h1>
-        </header>
-
-        <main class="flex-1 flex overflow-hidden">
-            <div id="chatArea" class="flex-1 flex flex-col p-6 overflow-y-auto scrollbar-thin space-y-4"></div>
-        </main>
-
-        <div class="p-6 bg-gray-800 rounded-b-2xl flex items-center border-t border-gray-700">
-            <textarea id="userInput" placeholder="Mesajınızı buraya yazın..."
-                class="flex-1 bg-gray-700 text-gray-100 placeholder-gray-400 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200 text-lg resize-none h-16"></textarea>
-            <button id="sendMessageBtn"
-                class="ml-4 bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
-                Gönder
-            </button>
-        </div>
+    <div class="mt-6">
+      <input id="searchChats" placeholder="Sohbet ara..." class="w-full p-2 rounded-md bg-gray-800 text-gray-100 mb-3" />
+      <div id="chatList" class="space-y-2 max-h-[60vh] overflow-auto pr-2"></div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="mt-auto pt-6 text-sm text-gray-400">
+      <div>Eywallah AI – Orion 1</div>
+      <div class="mt-2">Model: google/gemma-3-27b-it:free</div>
+    </div>
+  </aside>
+
+  <main class="bg-gray-900 rounded-2xl shadow-2xl flex-1 flex flex-col h-[90vh] overflow-hidden m-4 lg:m-8">
+    <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
+      <h1 class="text-3xl font-extrabold">Eywallah AI <span class="text-emerald-400">Orion 1</span></h1>
+      <div class="text-sm text-gray-300">Netlify + OpenRouter • Shift+Enter yeni satır</div>
+    </header>
+
+    <section class="flex-1 overflow-hidden">
+      <div id="chatArea" class="flex-1 p-6 overflow-y-auto scrollbar-thin space-y-4"></div>
+    </section>
+
+    <footer class="p-6 bg-gray-800 rounded-b-2xl flex items-end border-t border-gray-700 gap-4">
+      <textarea id="userInput" placeholder="Mesajınızı buraya yazın..." class="flex-1 bg-gray-700 p-3 rounded-xl resize-none h-20"></textarea>
+      <button id="sendMessageBtn" class="bg-emerald-500 px-6 py-3 rounded-xl text-gray-900 font-semibold">Gönder</button>
+    </footer>
+  </main>
+
+  <script type="module" src="egitim.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
