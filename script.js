@@ -8,16 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatBtn = document.getElementById('newChatBtn');
     const deleteChatBtn = document.getElementById('deleteChatBtn');
     
-    // API Anahtarı - Environment variable'dan al
-    const API_KEY = import.meta.env.EYWALLAH_AI_ORION;
-    
-    // API anahtarı kontrolü
-    if (!API_KEY) {
-        console.error('API anahtarı bulunamadı! Environment variable kontrol edilmeli.');
-        displayMessage('ai', 'API anahtarı yapılandırması eksik. Lütfen sistem yöneticisiyle iletişime geçin.');
-        return;
-    }
-    
     // Sohbet yönetimi için değişkenler
     let messages = [];
     let currentChatId = null;
@@ -50,32 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // AI yanıtı için bekleme animasyonu
             displayTypingIndicator();
             
-            // API isteği için headers ve body hazırla
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`,
-                'HTTP-Referer': window.location.origin,
-                'X-Title': 'Eywallah AI Orion 1'
-            };
-            
-            const body = {
-                model: 'deepseek/deepseek-r1-0528-qwen3-8b',
-                messages: [...messages, { role: 'user', content: text }],
-                temperature: 0.7,
-                max_tokens: 1000
-            };
-            
-            console.log('API isteği gönderiliyor...', {
-                url: 'https://openrouter.ai/api/v1/chat/completions',
-                headers: { ...headers, 'Authorization': 'Bearer [HIDDEN]' },
-                body: body
-            });
-            
-            // API isteğini yap
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            // Netlify Function'a istek gönder
+            const response = await fetch('/.netlify/functions/hello', {
                 method: 'POST',
-                headers: headers,
-                body: JSON.stringify(body)
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prompt: text,
+                    messages: messages
+                })
             });
             
             if (!response.ok) {
@@ -87,12 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             removeTypingIndicator();
             
-            if (data.choices && data.choices[0]) {
-                const aiMessage = data.choices[0].message.content;
-                displayMessage('ai', aiMessage);
+            if (data.reply) {
+                displayMessage('ai', data.reply);
                 messages.push(
                     { role: 'user', content: text },
-                    { role: 'assistant', content: aiMessage }
+                    { role: 'assistant', content: data.reply }
                 );
                 saveCurrentChat();
             } else {
@@ -113,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayMessage('ai', errorMessage);
         }
     }
-    
-    // Diğer fonksiyonlar aynı kalacak...
+
+    // Diğer yardımcı fonksiyonlar aynı kalacak...
+    // ... (displayMessage, displayTypingIndicator, removeTypingIndicator, vs.)
 });
