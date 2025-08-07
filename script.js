@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message: userMessage }) // ✅ Doğru isimle gönderiyoruz
+                body: JSON.stringify({ message: userMessage })
             });
 
             if (!res.ok) {
