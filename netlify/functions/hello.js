@@ -45,6 +45,13 @@ export async function handler(event, context) {
         };
     }
 
+    // Markdown'u temel HTML'e çeviren yardımcı fonksiyon
+    function convertMarkdownToHtml(markdown) {
+        if (!markdown) return "";
+        // **kalın** formatını <b>kalın</b> formatına çevirir
+        return markdown.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    }
+
     try {
         const requestBody = JSON.parse(event.body || "{}");
         const userMessage = requestBody.message || "Merhaba!";
@@ -55,11 +62,10 @@ export async function handler(event, context) {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${apiKey}`,
-                "HTTP-Referer": "https://eywallahai.netlify.app", // İstediğiniz URL eklendi
-                "X-Title": "Eywallah AI" // İstediğiniz isim eklendi
+                "HTTP-Referer": "https://eywallahai.netlify.app",
+                "X-Title": "Eywallah AI"
             },
             body: JSON.stringify({
-                // İstediğiniz model adı kullanıldı
                 "model": "deepseek/deepseek-r1-distill-llama-70b:free",
                 "messages": [
                     {
@@ -85,7 +91,10 @@ export async function handler(event, context) {
         }
 
         const data = await response.json();
-        const assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bir daha dene.";
+        let assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bir daha dene.";
+        
+        // Gelen metni HTML'e çevirir
+        assistantMessage = convertMarkdownToHtml(assistantMessage);
 
         return {
             statusCode: 200,
