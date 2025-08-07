@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteChatBtn = document.getElementById('deleteChatBtn');
     
     // API Anahtarı (güvenlik için .env dosyasından alınmalı)
-    const API_KEY = process.env.OPENROUTER_API_KEY || 'YOUR_API_KEY_HERE';
+    const API_KEY = process.env.OPENROUTER_API_KEY || 'EYWALLAH_AI_ORION';
     
     // Sohbet yönetimi için değişkenler
     let messages = [];
