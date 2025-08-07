@@ -1,8 +1,7 @@
+// script.js
 import { egitim } from './egitim.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOMContentLoaded yüklendi. Uygulama başlatılıyor...");
-
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatArea = document.getElementById('chatArea');
@@ -12,17 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const callNetlifyBtn = document.getElementById('callNetlifyBtn');
     const netlifyResult = document.getElementById('netlifyResult');
 
-    if (!chatInput) console.error("Hata: 'chatInput' elementi bulunamadı!");
-    if (!sendMessageBtn) console.error("Hata: 'sendMessageBtn' elementi bulunamadı!");
-    if (!chatArea) console.error("Hata: 'chatArea' elementi bulunamadı!");
-    if (!modesToggle) console.error("Hata: 'modesToggle' elementi bulunamadı!");
-    if (!modesPanel) console.error("Hata: 'modesPanel' elementi bulunamadı!");
-    if (!modesContent) console.error("Hata: 'modesContent' elementi bulunamadı!");
-    if (!callNetlifyBtn) console.error("Hata: 'callNetlifyBtn' elementi bulunamadı!");
-    if (!netlifyResult) console.error("Hata: 'netlifyResult' elementi bulunamadı!");
+    // Hata kontrolü, elementlerin var olduğundan emin olmak için
+    const elements = { chatInput, sendMessageBtn, chatArea, modesToggle, modesPanel, modesContent, callNetlifyBtn, netlifyResult };
+    for (const key in elements) {
+        if (!elements[key]) console.error(`Hata: '${key}' elementi bulunamadı!`);
+    }
 
     async function sendMessage() {
-        console.log("sendMessage fonksiyonu çağrıldı.");
         if (!chatInput) return;
         const userMessage = chatInput.value.trim();
         if (userMessage === '') return;
@@ -30,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         displayMessage(userMessage, 'user');
         chatInput.value = '';
         if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-
+        
         let aiResponse = "Yanıt alınamadı.";
 
         try {
@@ -44,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok) {
                 const errorData = await res.json();
-                throw new Error(`Netlify fonksiyon hatası: ${res.status} - ${errorData.message}`);
+                throw new Error(`Netlify fonksiyon hatası: ${res.status} - ${errorData.error || errorData.reply}`);
             }
 
             const data = await res.json();
@@ -68,18 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (sender === 'user') {
             messageDiv.classList.add('justify-end');
-            messageDiv.innerHTML = `
-                <div class="bg-emerald-600 text-white p-3 rounded-xl max-w-xs shadow-md">
-                    ${message}
-                </div>
-            `;
+            messageDiv.innerHTML = `<div class="bg-emerald-600 text-white p-3 rounded-xl max-w-xs shadow-md">${message}</div>`;
         } else {
             messageDiv.classList.add('justify-start');
-            messageDiv.innerHTML = `
-                <div class="bg-gray-700 text-gray-200 p-3 rounded-xl max-w-xs shadow-md">
-                    ${message}
-                </div>
-            `;
+            messageDiv.innerHTML = `<div class="bg-gray-700 text-gray-200 p-3 rounded-xl max-w-xs shadow-md">${message}</div>`;
         }
 
         chatArea.appendChild(messageDiv);
@@ -89,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!modesPanel) return;
         modesPanel.classList.toggle('hidden');
 
-        if (!modesPanel.classList.contains('hidden') && modesContent && modesContent.innerHTML.includes("yükleniyor")) {
+        if (!modesPanel.classList.contains('hidden')) {
             loadModesContent();
         }
     }
@@ -97,20 +84,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadModesContent() {
         if (!modesContent) return;
         modesContent.innerHTML = '';
+        const { projeTanimi, hedefOzellikler, teknikAltyapi, modlar } = egitim;
 
         const projectDesc = document.createElement('p');
         projectDesc.classList.add('text-gray-200', 'font-medium', 'text-lg');
-        projectDesc.innerHTML = `<span class="text-emerald-400">Proje Tanımı:</span> ${egitim.projeTanimi}`;
+        projectDesc.innerHTML = `<span class="text-emerald-400">Proje Tanımı:</span> ${projeTanimi}`;
         modesContent.appendChild(projectDesc);
 
         const featuresTitle = document.createElement('h3');
         featuresTitle.classList.add('text-xl', 'font-semibold', 'text-white', 'mt-4');
         featuresTitle.textContent = 'Hedef Özellikler:';
         modesContent.appendChild(featuresTitle);
-
         const featuresList = document.createElement('ul');
         featuresList.classList.add('list-disc', 'list-inside', 'ml-4', 'space-y-1');
-        egitim.hedefOzellikler.forEach(feature => {
+        hedefOzellikler.forEach(feature => {
             const li = document.createElement('li');
             li.textContent = feature;
             featuresList.appendChild(li);
@@ -121,28 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
         techStackTitle.classList.add('text-xl', 'font-semibold', 'text-white', 'mt-4');
         techStackTitle.textContent = 'Teknik Altyapı:';
         modesContent.appendChild(techStackTitle);
-
         const techStackDiv = document.createElement('div');
         techStackDiv.classList.add('ml-4', 'space-y-1');
-        techStackDiv.innerHTML = `
-            <p><strong>Model:</strong> ${egitim.teknikAltyapi.model}</p>
-            <p><strong>Geliştirme Dili:</strong> ${egitim.teknikAltyapi.gelistirmeDili.join(', ')}</p>
-            <p><strong>API Entegrasyonları:</strong> ${egitim.teknikAltyapi.apiEntegrasyonlari.join(', ')}</p>
-        `;
+        techStackDiv.innerHTML = `<p><strong>Model:</strong> ${teknikAltyapi.model}</p><p><strong>Geliştirme Dili:</strong> ${teknikAltyapi.gelistirmeDili.join(', ')}</p><p><strong>API Entegrasyonları:</strong> ${teknikAltyapi.apiEntegrasyonlari.join(', ')}</p>`;
         modesContent.appendChild(techStackDiv);
 
         const modesTitle = document.createElement('h3');
         modesTitle.classList.add('text-xl', 'font-semibold', 'text-white', 'mt-4');
         modesTitle.textContent = 'Mevcut Modlar:';
         modesContent.appendChild(modesTitle);
-
-        egitim.modlar.forEach(mode => {
+        modlar.forEach(mode => {
             const modeDiv = document.createElement('div');
             modeDiv.classList.add('bg-gray-700', 'p-3', 'rounded-lg', 'shadow-sm');
-            modeDiv.innerHTML = `
-                <h4 class="font-semibold text-emerald-300">${mode.ad}</h4>
-                <p class="text-sm text-gray-400">${mode.amac}</p>
-            `;
+            modeDiv.innerHTML = `<h4 class="font-semibold text-emerald-300">${mode.ad}</h4><p class="text-sm text-gray-400">${mode.amac}</p>`;
             modesContent.appendChild(modeDiv);
         });
     }
@@ -152,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
         try {
             const res = await fetch('/.netlify/functions/hello', {
-                method: 'GET'
+                method: 'GET' // Test için GET metodu kullanılıyor
             });
             const data = await res.json();
             netlifyResult.textContent = JSON.stringify(data, null, 2);
@@ -162,15 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', sendMessage);
-    }
-    if (modesToggle) {
-        modesToggle.addEventListener('click', toggleModesPanel);
-    }
-    if (callNetlifyBtn) {
-        callNetlifyBtn.addEventListener('click', callNetlifyFunction);
-    }
+    if (sendMessageBtn) sendMessageBtn.addEventListener('click', sendMessage);
+    if (modesToggle) modesToggle.addEventListener('click', toggleModesPanel);
+    if (callNetlifyBtn) callNetlifyBtn.addEventListener('click', callNetlifyFunction);
     if (chatInput) {
         chatInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
