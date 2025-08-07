@@ -26,8 +26,16 @@ exports.handler = async (event) => {
                 'X-Title': 'Eywallah AI Orion 1'
             },
             body: JSON.stringify({
-                model: 'deepseek/deepseek-r1-0528-qwen3-8b',
-                messages: fullMessages,
+                model: 'google/gemma-3-27b-it:free',
+                messages: fullMessages.map(msg => ({
+                    role: msg.role,
+                    content: [
+                        {
+                            type: 'text',
+                            text: msg.content
+                        }
+                    ]
+                })),
                 temperature: 0.7,
                 max_tokens: 2000
             })
