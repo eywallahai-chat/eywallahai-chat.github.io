@@ -1,8 +1,10 @@
 // netlify/functions/hello.js
 export async function handler(event, context) {
+    // API anahtarını Netlify ortam değişkenlerinden alıyor
     const apiKey = process.env.Eywallah_AI_Orion;
 
-    const allowedOrigins = ["https://eywallah-ai.netlify.app", "http://localhost:8888"];
+    // Sadece belirlenen sitelerden gelen isteklere izin verir.
+    const allowedOrigins = ["https://eywallahai.netlify.app", "http://localhost:8888"];
     const origin = event.headers.origin;
 
     const headers = {
@@ -11,6 +13,7 @@ export async function handler(event, context) {
         "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     };
 
+    // Eğer API anahtarı yoksa hata döndürür.
     if (!apiKey) {
         return {
             statusCode: 500,
@@ -19,10 +22,12 @@ export async function handler(event, context) {
         };
     }
 
+    // OPTIONS isteğine yanıt verir.
     if (event.httpMethod === "OPTIONS") {
         return { statusCode: 200, headers, body: "OK" };
     }
 
+    // GET isteğine yanıt verir (fonksiyonun canlı olduğunu kontrol etmek için).
     if (event.httpMethod === "GET") {
         return {
             statusCode: 200,
@@ -31,6 +36,7 @@ export async function handler(event, context) {
         };
     }
 
+    // Sadece POST isteklerine izin verir.
     if (event.httpMethod !== "POST") {
         return {
             statusCode: 405,
@@ -43,31 +49,33 @@ export async function handler(event, context) {
         const requestBody = JSON.parse(event.body || "{}");
         const userMessage = requestBody.message || "Merhaba!";
 
+        // OpenRouter API'ye POST isteği gönderir
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${apiKey}`,
-                "HTTP-Referer": "https://eywallah-ai.netlify.app",
-                "X-Title": "Eywallah AI",
+                "HTTP-Referer": "https://eywallahai.netlify.app", // İstediğiniz URL eklendi
+                "X-Title": "Eywallah AI" // İstediğiniz isim eklendi
             },
             body: JSON.stringify({
-                model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
-                messages: [
+                // İstediğiniz model adı kullanıldı
+                "model": "deepseek/deepseek-r1-distill-llama-70b:free",
+                "messages": [
                     {
-                        role: "system",
-                        content:
+                        "role": "system",
+                        "content":
                             "Sen Eywallah AI'sın. Geliştiricin Eyüp Ensar Erkul, vizyoner bir genç. Sen empatik, öğretici, esprili ama saygılı bir yapay zekâsın. Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde dini bilgi verir, gerektiğinde kod desteği sunarsın.",
                     },
                     {
-                        role: "user",
-                        content: userMessage,
+                        "role": "user",
+                        "content": userMessage,
                     },
                 ],
-                temperature: 0.7,
-                max_tokens: 512,
-                top_p: 0.9,
-                stream: false,
+                "temperature": 0.7,
+                "max_tokens": 512,
+                "top_p": 0.9,
+                "stream": false,
             }),
         });
 
