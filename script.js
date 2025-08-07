@@ -1,393 +1,158 @@
-// egitim.js modülünü içeri aktarır
-import { egitim } from './egitim.js';
-
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM içeriği yüklendi. Uygulama başlatılıyor...");
-
-    // HTML elementleri
-    const chatInput = document.getElementById('chatInput');
+    // Element referansları
+    const chatInput = document.getElementById('userInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatArea = document.getElementById('chatArea');
-    const modesToggle = document.getElementById('modesToggle');
-    const modesPanel = document.getElementById('modesPanel');
-    const modesContent = document.getElementById('modesContent');
-    const callNetlifyBtn = document.getElementById('callNetlifyBtn');
-    const netlifyResult = document.getElementById('netlifyResult');
     const menuToggleBtn = document.getElementById('menuToggleBtn');
     const sidebar = document.getElementById('sidebar');
     const newChatBtn = document.getElementById('newChatBtn');
     const deleteChatBtn = document.getElementById('deleteChatBtn');
-    const chatList = document.getElementById('chatList');
     
-    // Geçici bir kullanıcı ID'si atama
-    const userId = "temp_user_id";
+    // API Anahtarı (güvenlik için .env dosyasından alınmalı)
+    const API_KEY = process.env.OPENROUTER_API_KEY || 'YOUR_API_KEY_HERE';
+    
+    // Sohbet yönetimi için değişkenler
+    let messages = [];
     let currentChatId = null;
-
-    // Elementlerin varlığını kontrol etme
-    const elementsToCheck = {
-        chatInput, sendMessageBtn, chatArea, modesToggle, modesPanel, modesContent, callNetlifyBtn, netlifyResult,
-        menuToggleBtn, sidebar, newChatBtn, deleteChatBtn, chatList
-    };
-
-    for (const key in elementsToCheck) {
-        if (!elementsToCheck[key]) {
-            console.error(`Hata: '${key}' ID'sine sahip HTML elementi bulunamadı. Lütfen index.html dosyasını kontrol edin.`);
-        }
-    }
     
-    // AI yanıtı gelene kadar "yazıyor..." animasyonunu gösterir
-    function displayTypingIndicator() {
-        if (!chatArea) return;
-        const typingIndicatorDiv = document.createElement('div');
-        typingIndicatorDiv.id = 'typingIndicator';
-        typingIndicatorDiv.classList.add('flex', 'justify-start', 'mb-4');
-        typingIndicatorDiv.innerHTML = `
-            <div class="bg-gray-700 text-gray-200 p-3 rounded-xl max-w-xs shadow-md">
-                <span class="dot-flashing"></span>
-            </div>
-        `;
-        chatArea.appendChild(typingIndicatorDiv);
-        chatArea.scrollTop = chatArea.scrollHeight;
-    }
-
-    // "Yazıyor..." animasyonunu kaldırır
-    function removeTypingIndicator() {
-        const typingIndicator = document.getElementById('typingIndicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
+    // Sayfa yüklendiğinde mevcut sohbeti yükle
+    loadCurrentChat();
+    
+    // Event Listeners
+    sendMessageBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
         }
-    }
-
-    // Sohbet listesini arka uçtan (Netlify Fonksiyonu) yükleme
-    async function loadChats() {
-        if (chatList) {
-            chatList.innerHTML = '';
-        }
-        try {
-            // Netlify fonksiyonunu hello.js olarak çağırma
-            const response = await fetch(`/.netlify/functions/hello?action=get_chats&userId=${userId}`);
-            
-            // Yanıtın geçerli bir JSON olup olmadığını kontrol etme
-            if (!response.ok) {
-                throw new Error(`Sunucu hatası: ${response.status} - ${response.statusText}`);
-            }
-
-            const chats = await response.json();
-            
-            // Yanıtın bir dizi olduğundan emin olma
-            if (!Array.isArray(chats)) {
-                throw new Error("Sunucudan geçerli bir sohbet listesi alınamadı.");
-            }
-            
-            if (chats.length === 0) {
-                // Eğer hiç sohbet yoksa, otomatik olarak yeni bir tane oluştur
-                console.log("Hiç sohbet bulunamadı. Yeni sohbet başlatılıyor...");
-                await startNewChat();
-                return;
-            }
-
-            let isFirstChat = true;
-            chats.forEach(chat => {
-                const chatItem = document.createElement('li');
-                chatItem.classList.add('chat-item', 'p-2', 'rounded-md', 'text-sm', 'bg-gray-700', 'hover:bg-gray-600', 'cursor-pointer');
-                chatItem.textContent = chat.title || `Sohbet ${chat.id.substring(0, 8)}`;
-                chatItem.dataset.chatId = chat.id;
-                
-                chatItem.addEventListener('click', () => {
-                    selectChat(chat.id);
-                });
-
-                if (chatList) {
-                    chatList.appendChild(chatItem);
-                }
-
-                if (isFirstChat) {
-                    selectChat(chat.id);
-                    isFirstChat = false;
-                }
-            });
-        } catch (error) {
-            console.error("Sohbet listesi yüklenirken hata oluştu:", error);
-            // Hata durumunda kullanıcıya bilgilendirici mesaj göster
-            displayMessage(`Sohbetler yüklenemedi. Sunucu hatası veya geçersiz yanıt. Lütfen Netlify fonksiyonunuzu kontrol edin. Hata: ${error.message}`, 'ai');
-        }
-    }
-
-    // Sohbeti seçme ve mesajlarını yükleme
-    async function selectChat(chatId) {
-        if (chatId === currentChatId) return;
-
-        currentChatId = chatId;
-        
-        // Aktif sohbeti vurgula
-        document.querySelectorAll('.chat-item').forEach(item => {
-            item.classList.remove('active', 'bg-emerald-400');
-            item.classList.add('bg-gray-700');
-        });
-        const selectedChatElement = document.querySelector(`[data-chat-id="${chatId}"]`);
-        if (selectedChatElement) {
-            selectedChatElement.classList.add('active', 'bg-emerald-400');
-            selectedChatElement.classList.remove('bg-gray-700');
-        }
-
-        if (chatArea) {
-            chatArea.innerHTML = '';
-            displayMessage('Sohbet yükleniyor...', 'ai');
-        }
-        
-        try {
-            // Netlify fonksiyonunu hello.js olarak çağırma
-            const response = await fetch(`/.netlify/functions/hello?action=get_messages&chatId=${chatId}`);
-            if (!response.ok) {
-                throw new Error(`Sunucu hatası: ${response.status} - ${response.statusText}`);
-            }
-
-            const messages = await response.json();
-            
-            if (chatArea) {
-                chatArea.innerHTML = '';
-            }
-            
-            if (messages.length > 0) {
-                messages.forEach(msg => {
-                    displayMessage(msg.text, msg.sender);
-                });
-            } else {
-                if (chatArea) {
-                    displayMessage('Bu sohbette henüz mesaj yok.', 'ai');
-                }
-            }
-            if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-        } catch (error) {
-            console.error("Mesajlar yüklenirken hata oluştu:", error);
-            displayMessage(`Mesajlar yüklenemedi: ${error.message}`, 'ai');
-        }
-    }
-
+    });
+    menuToggleBtn.addEventListener('click', toggleSidebar);
+    newChatBtn.addEventListener('click', startNewChat);
+    deleteChatBtn.addEventListener('click', deleteCurrentChat);
+    
     // Mesaj gönderme fonksiyonu
     async function sendMessage() {
-        console.log("sendMessage fonksiyonu çağrıldı.");
-        // Kritik kontrol: currentChatId'nin boş olup olmadığını kontrol et
-        if (!chatInput || !sendMessageBtn || !currentChatId) {
-            console.error("Gönderme butonu, giriş alanı veya seçili sohbet bulunamadı. Lütfen sohbet listesinin yüklendiğinden emin olun.");
-            displayMessage("Sohbet listesi yüklenemediği için mesaj gönderilemiyor. Lütfen arka uç (backend) bağlantısını kontrol edin ve sayfayı yenileyin.", 'ai');
-            return;
-        }
-
-        const userMessage = chatInput.value.trim();
-        if (userMessage === '') return;
-
-        displayMessage(userMessage, 'user');
-        chatInput.value = '';
-        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-
-        displayTypingIndicator();
-
-        let aiResponse = "Yanıt alınamadı.";
-
+        const text = chatInput.value.trim();
+        if (!text) return;
+        
         try {
-            // Netlify fonksiyonunu hello.js olarak çağırma
-            const res = await fetch('/.netlify/functions/hello', {
+            // Kullanıcı mesajını göster
+            displayMessage('user', text);
+            chatInput.value = '';
+            
+            // AI yanıtı için bekleme animasyonu
+            displayTypingIndicator();
+            
+            // AI yanıtını al
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
                 },
-                body: JSON.stringify({ action: 'send_message', userId, chatId: currentChatId, message: userMessage })
+                body: JSON.stringify({
+                    model: 'deepseek/deepseek-r1-0528-qwen3-8b',
+                    messages: [...messages, { role: 'user', content: text }]
+                })
             });
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                throw new Error(`Netlify fonksiyon hatası: ${res.status} - ${errorText}`);
+            
+            const data = await response.json();
+            removeTypingIndicator();
+            
+            if (data.choices && data.choices[0]) {
+                const aiMessage = data.choices[0].message.content;
+                displayMessage('ai', aiMessage);
+                messages.push(
+                    { role: 'user', content: text },
+                    { role: 'assistant', content: aiMessage }
+                );
+                saveCurrentChat();
+            } else {
+                throw new Error('AI yanıtı alınamadı');
             }
-
-            const data = await res.json();
-            aiResponse = data.reply || "Netlify fonksiyonundan boş yanıt geldi.";
-            console.log("Netlify fonksiyon yanıtı:", aiResponse);
+            
         } catch (error) {
-            console.error("Mesaj gönderilirken hata oluştu:", error);
-            aiResponse = `Mesaj gönderilirken hata oluştu: ${error.message}`;
+            console.error('Hata:', error);
+            removeTypingIndicator();
+            displayMessage('ai', 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.');
         }
-        
-        removeTypingIndicator();
-        displayMessage(aiResponse, 'ai');
-        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-    }
-
-    // Mesajı DOM'a yazdıran fonksiyon
-    function displayMessage(message, sender) {
-        if (!chatArea) return;
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('flex', 'mb-4');
-
-        if (sender === 'user') {
-            messageDiv.classList.add('justify-end');
-            messageDiv.innerHTML = `<div class="bg-emerald-600 text-white p-3 rounded-xl max-w-xs shadow-md">${message}</div>`;
-        } else {
-            messageDiv.classList.add('justify-start');
-            messageDiv.innerHTML = `<div class="bg-gray-700 text-gray-200 p-3 rounded-xl max-w-xs shadow-md">${message}</div>`;
-        }
-        chatArea.appendChild(messageDiv);
     }
     
-    // Modlar panelini açıp kapatma fonksiyonu
-    function toggleModesPanel() {
-        if (!modesPanel) return;
-        modesPanel.classList.toggle('hidden');
-        if (!modesPanel.classList.contains('hidden')) {
-            loadModesContent();
+    // Yardımcı fonksiyonlar
+    function displayMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', role);
+        messageDiv.textContent = content;
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    function displayTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typingIndicator';
+        typingDiv.classList.add('message', 'ai');
+        typingDiv.innerHTML = `
+            <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+        chatArea.appendChild(typingDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) {
+            indicator.remove();
         }
     }
-
-    // Modlar panelinin içeriğini yükleme fonksiyonu
-    function loadModesContent() {
-        if (!modesContent) return;
-        modesContent.innerHTML = '';
-        if (typeof egitim === 'undefined' || !egitim) {
-            modesContent.innerHTML = `<p class="text-red-400">Hata: Eğitim modülü yüklenemedi.</p>`;
-            return;
-        }
-
-        const { projeTanimi, hedefOzellikler, teknikAltyapi, modlar } = egitim;
-
-        const projectDesc = document.createElement('p');
-        projectDesc.classList.add('text-gray-200', 'font-medium', 'text-lg');
-        projectDesc.innerHTML = `<span class="text-emerald-400">Proje Tanımı:</span> ${projeTanimi}`;
-        modesContent.appendChild(projectDesc);
-
-        const featuresTitle = document.createElement('h3');
-        featuresTitle.classList.add('text-xl', 'font-semibold', 'text-white', 'mt-4');
-        featuresTitle.textContent = 'Hedef Özellikler:';
-        modesContent.appendChild(featuresTitle);
-        const featuresList = document.createElement('ul');
-        featuresList.classList.add('list-disc', 'list-inside', 'ml-4', 'space-y-1');
-        hedefOzellikler.forEach(feature => {
-            const li = document.createElement('li');
-            li.textContent = feature;
-            featuresList.appendChild(li);
-        });
-        modesContent.appendChild(featuresList);
-
-        const techStackTitle = document.createElement('h3');
-        techStackTitle.classList.add('text-xl', 'font-semibold', 'text-white', 'mt-4');
-        techStackTitle.textContent = 'Teknik Altyapı:';
-        modesContent.appendChild(techStackTitle);
-        const techStackDiv = document.createElement('div');
-        techStackDiv.classList.add('ml-4', 'space-y-1');
-        techStackDiv.innerHTML = `<p><strong>Model:</strong> ${teknikAltyapi.model}</p><p><strong>Geliştirme Dili:</strong> ${teknikAltyapi.gelistirmeDili.join(', ')}</p><p><strong>API Entegrasyonları:</strong> ${teknikAltyapi.apiEntegrasyonlari.join(', ')}</p>`;
-        modesContent.appendChild(techStackDiv);
-
-        const modesTitle = document.createElement('h3');
-        modesTitle.classList.add('text-xl', 'font-semibold', 'text-white', 'mt-4');
-        modesTitle.textContent = 'Mevcut Modlar:';
-        modesContent.appendChild(modesTitle);
-        modlar.forEach(mode => {
-            const modeDiv = document.createElement('div');
-            modeDiv.classList.add('bg-gray-700', 'p-3', 'rounded-lg', 'shadow-sm');
-            modeDiv.innerHTML = `<h4 class="font-semibold text-emerald-300">${mode.ad}</h4><p class="text-sm text-gray-400">${mode.amac}</p>`;
-            modesContent.appendChild(modeDiv);
-        });
-    }
-
-    async function callNetlifyFunction() {
-        if (!netlifyResult) return;
-        netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
-        try {
-            // Netlify fonksiyonunu hello.js olarak çağırma
-            const res = await fetch('/.netlify/functions/hello?action=test_netlify');
-            if (!res.ok) {
-                throw new Error(`Netlify fonksiyon hatası: ${res.status}`);
-            }
-            const data = await res.json();
-            netlifyResult.textContent = JSON.stringify(data, null, 2);
-        } catch (error) {
-            netlifyResult.textContent = `Hata: ${error.message}`;
-            console.error("Netlify fonksiyonu çağrılırken hata oluştu:", error);
-        }
-    }
-
-    // Yeni sohbet başlatma fonksiyonu
-    async function startNewChat() {
-        try {
-            const response = await fetch('/.netlify/functions/hello', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'new_chat', userId })
-            });
-            if (!response.ok) {
-                throw new Error(`Sunucu hatası: ${response.status}`);
-            }
-            const newChat = await response.json();
-            if (newChat.chatId) {
-                currentChatId = newChat.chatId;
-                await loadChats();
-                selectChat(newChat.chatId);
-            }
-        } catch (error) {
-            console.error("Yeni sohbet başlatılırken hata oluştu:", error);
-            displayMessage(`Yeni sohbet başlatılamadı: ${error.message}`, 'ai');
-        }
-        toggleSidebar();
-    }
-
-    // Sohbeti silme fonksiyonu
-    async function deleteCurrentChat() {
-        if (!currentChatId) return;
-        try {
-            const response = await fetch('/.netlify/functions/hello', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete_chat', userId, chatId: currentChatId })
-            });
-            if (!response.ok) {
-                throw new Error(`Sunucu hatası: ${response.status}`);
-            }
-            await response.json();
-            currentChatId = null;
-            await loadChats();
-        } catch (error) {
-            console.error("Sohbet silinirken hata oluştu:", error);
-            displayMessage(`Sohbet silinemedi: ${error.message}`, 'ai');
-        }
-        toggleSidebar();
-    }
-
-    // Sidebar'ı açıp kapama
+    
     function toggleSidebar() {
-        if (sidebar) {
-            sidebar.classList.toggle('open');
+        sidebar.classList.toggle('open');
+    }
+    
+    function startNewChat() {
+        currentChatId = Date.now().toString();
+        messages = [];
+        chatArea.innerHTML = '';
+        saveCurrentChat();
+        toggleSidebar();
+    }
+    
+    function deleteCurrentChat() {
+        if (!currentChatId) return;
+        
+        if (confirm('Bu sohbeti silmek istediğinizden emin misiniz?')) {
+            localStorage.removeItem(`chat_${currentChatId}`);
+            startNewChat();
         }
     }
-
-    // Event dinleyicileri
-    if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', sendMessage);
+    
+    function saveCurrentChat() {
+        if (!currentChatId) return;
+        localStorage.setItem(`chat_${currentChatId}`, JSON.stringify({
+            id: currentChatId,
+            messages: messages
+        }));
     }
-    if (modesToggle) {
-        modesToggle.addEventListener('click', toggleModesPanel);
+    
+    function loadCurrentChat() {
+        const savedChats = Object.keys(localStorage)
+            .filter(key => key.startsWith('chat_'))
+            .map(key => JSON.parse(localStorage.getItem(key)))
+            .sort((a, b) => b.id - a.id);
+        
+        if (savedChats.length > 0) {
+            const lastChat = savedChats[0];
+            currentChatId = lastChat.id;
+            messages = lastChat.messages;
+            messages.forEach(msg => {
+                displayMessage(msg.role === 'user' ? 'user' : 'ai', msg.content);
+            });
+        } else {
+            startNewChat();
+        }
     }
-    if (callNetlifyBtn) {
-        callNetlifyBtn.addEventListener('click', callNetlifyFunction);
-    }
-    if (chatInput) {
-        chatInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-    }
-    if (menuToggleBtn) {
-        menuToggleBtn.addEventListener('click', toggleSidebar);
-    }
-    if (newChatBtn) {
-        newChatBtn.addEventListener('click', startNewChat);
-    }
-    if (deleteChatBtn) {
-        deleteChatBtn.addEventListener('click', deleteCurrentChat);
-    }
-
-    // Uygulama başladığında sohbetleri yükle
-    loadChats();
-    // Modlar içeriğini de başlangıçta yükle
-    loadModesContent();
 });
