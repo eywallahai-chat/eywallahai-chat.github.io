@@ -52,9 +52,7 @@ export async function handler(event, context) {
                 "X-Title": "Eywallah AI",
             },
             body: JSON.stringify({
-                // Model adını OpenRouter'da doğru biçime çevirdim.
-                // Bu adın API'de aktif olduğundan emin olmak gerek.
-                model: "deepseek/deepseek-r1-distill",
+                model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
                 messages: [
                     {
                         role: "system",
@@ -79,7 +77,6 @@ export async function handler(event, context) {
         }
 
         const data = await response.json();
-
         const assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bir daha dene.";
 
         return {
