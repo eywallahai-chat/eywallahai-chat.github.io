@@ -24,9 +24,70 @@
             border-radius: 10px;
             border: 2px solid #1a1a1a;
         }
+
+        /* Sohbet menüsü için yeni stiller */
+        .sidebar {
+            width: 12.5vw;
+            min-width: 200px;
+            background-color: #1a1a1a;
+            color: #f2f2f2;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 50; /* Diğer her şeyin önünde olmalı */
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        #menuToggleBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 60; /* Sidebar'ın da önünde olmalı */
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #f2f2f2;
+            padding: 0;
+        }
+        .sidebar-buttons button {
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: #2a2a2a;
+            color: #f2f2f2;
+            font-weight: 500;
+        }
+        .sidebar-buttons button:hover {
+            background-color: #3a3a3a;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Sol üstteki menü butonu -->
+    <button id="menuToggleBtn">☰</button>
+
+    <!-- Soldan açılan sohbet menüsü -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-buttons">
+            <button id="newChatBtn" class="bg-gray-700 text-white p-3 rounded-xl shadow-md w-full mb-3">
+                Yeni Sohbet
+            </button>
+            <button id="deleteChatBtn" class="bg-red-700 text-white p-3 rounded-xl shadow-md w-full">
+                Sohbeti Sil
+            </button>
+        </div>
+        <!-- Diğer sohbetler buraya eklenebilir -->
+    </div>
+
+    <!-- Ana içerik konteyneri -->
     <div class="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col h-[90vh] overflow-hidden">
         <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
             <h1 class="text-4xl font-extrabold text-white tracking-tight">
