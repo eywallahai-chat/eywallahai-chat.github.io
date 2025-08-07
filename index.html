@@ -100,6 +100,7 @@
 
   <script>
     const chatArea = document.getElementById('chatArea');
+    const userInput = document.getElementById('userInput');
     
     function toggleMenu() {
       document.getElementById('sidebar').classList.toggle('open');
@@ -164,7 +165,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer SENIN_OPENROUTER_API_KEY'
+            'Authorization': 'Bearer <SENIN_OPENROUTER_API_KEY>' // API anahtarınızı buraya yazın
           },
           body: JSON.stringify({
             model: 'deepseek/deepseek-r1-0528-qwen3-8b',
@@ -187,14 +188,22 @@
 
     function handleSend(e) {
       e.preventDefault();
-      const input = document.getElementById('userInput');
-      const text = input.value.trim();
+      const text = userInput.value.trim();
       if (!text) return;
       saveMessage('user', text);
       displayMessages();
       getAIResponse(text);
-      input.value = '';
+      userInput.value = '';
     }
+
+    // Enter tuşunu dinleyen event listener eklendi
+    userInput.addEventListener('keypress', function(event) {
+        // 'Enter' tuşunun basılıp basılmadığını kontrol et
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Varsayılan davranışı (yeni satır ekleme) engelle
+            handleSend(event); // Mesaj gönderme fonksiyonunu çağır
+        }
+    });
 
     window.onload = displayMessages;
   </script>
