@@ -44,8 +44,7 @@ export async function handler(event, context) {
                 "X-Title": "Eywallah AI",
             },
             body: JSON.stringify({
-                // Buraya OpenRouter API’den geçerli model adını yaz
-                model: "deepseek-chat", // Burayı kendi modelinle değiştir. Örnek: "deepseek-chat"
+                model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
                 messages: [
                     {
                         role: "system",
