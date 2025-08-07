@@ -23,7 +23,7 @@ exports.handler = async (event) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.EYWALLAH_AI_ORION}`,
-                'HTTP-Referer': 'https://eywallahai-chat.github.io/',
+                'HTTP-Referer': 'https://eywallahai.netlify.app/',
                 'X-Title': 'Eywallah AI Orion 1'
             },
             body: JSON.stringify({
