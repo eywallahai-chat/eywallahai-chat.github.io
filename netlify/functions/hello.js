@@ -1,7 +1,6 @@
 // netlify/functions/hello.js
 export async function handler(event, context) {
-    // OpenRouter API Anahtarını Netlify ortam değişkeni olarak ayarla!
-    const apiKey = process.env.Eywallah_AI_Orion; 
+    const apiKey = process.env.Eywallah_AI_Orion;
 
     const allowedOrigins = ["https://eywallah-ai.netlify.app", "http://localhost:8888"];
     const origin = event.headers.origin;
@@ -13,11 +12,7 @@ export async function handler(event, context) {
     };
 
     if (event.httpMethod === "OPTIONS") {
-        return {
-            statusCode: 200,
-            headers,
-            body: "OK",
-        };
+        return { statusCode: 200, headers, body: "OK" };
     }
 
     if (event.httpMethod === "GET") {
@@ -45,27 +40,27 @@ export async function handler(event, context) {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${apiKey}`,
-                "HTTP-Referer": "https://eywallah-ai.netlify.app", 
-                "X-Title": "Eywallah AI" 
+                "HTTP-Referer": "https://eywallah-ai.netlify.app",
+                "X-Title": "Eywallah AI",
             },
             body: JSON.stringify({
-                // Düzeltilen kısım: Geçerli OpenRouter model adını kullan
-                model: "deepseek-chat", 
+                // Buraya OpenRouter API’den geçerli model adını yaz
+                model: "deepseek-chat", // Burayı kendi modelinle değiştir. Örnek: "deepseek-chat"
                 messages: [
                     {
                         role: "system",
-                        content: `Sen Eywallah AI'sın. Geliştiricin Eyüp Ensar Erkul, vizyoner bir genç. Sen empatik, öğretici, esprili ama saygılı bir yapay zekâsın. Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde dini bilgi verir, gerektiğinde kod desteği sunarsın.`
+                        content: `Sen Eywallah AI'sın. Geliştiricin Eyüp Ensar Erkul, vizyoner bir genç. Sen empatik, öğretici, esprili ama saygılı bir yapay zekâsın. Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde dini bilgi verir, gerektiğinde kod desteği sunarsın.`,
                     },
                     {
                         role: "user",
-                        content: userMessage
-                    }
+                        content: userMessage,
+                    },
                 ],
                 temperature: 0.7,
                 max_tokens: 512,
                 top_p: 0.9,
-                stream: false
-            })
+                stream: false,
+            }),
         });
 
         if (!response.ok) {
@@ -79,14 +74,14 @@ export async function handler(event, context) {
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ reply: assistantMessage })
+            body: JSON.stringify({ reply: assistantMessage }),
         };
     } catch (error) {
         console.error("Fonksiyon hatası:", error);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ reply: `Sunucu hatası: ${error.message}` })
+            body: JSON.stringify({ reply: `Sunucu hatası: ${error.message}` }),
         };
     }
 }
