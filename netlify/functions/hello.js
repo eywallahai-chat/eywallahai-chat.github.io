@@ -78,10 +78,6 @@ export async function handler(event, context) {
                         "content": userMessage,
                     },
                 ],
-                "temperature": 0.7,
-                "max_tokens": 512,
-                "top_p": 0.9,
-                "stream": false,
             }),
         });
 
