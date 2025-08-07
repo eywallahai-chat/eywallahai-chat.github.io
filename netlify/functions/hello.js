@@ -1,16 +1,11 @@
-// Bu dosya, Netlify'da "hello.js" adıyla çalışacak fonksiyon kodudur.
-// Ön yüz (index.html) bu fonksiyonu `/.netlify/functions/hello` adresi üzerinden çağırır.
-
-// API çağrısı için gerekli kütüphane
+// Netlify Sunucu Fonksiyonu
 const fetch = require('node-fetch');
 
-// Ortam değişkeni ile AI API anahtarını alıyoruz.
-// NOT: Netlify'da 'OPENROUTER_API_KEY' adında bir ortam değişkeni tanımlamanız gerekiyor.
+// API anahtarını ortam değişkeninden al
 const openrouterApiKey = process.env.EYWALLAH_AI_ORION;
 
-// Netlify fonksiyonunun ana işleyicisi
 exports.handler = async (event) => {
-    // Sadece POST isteklerini işliyoruz
+    // Sadece POST isteklerini kabul et
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
@@ -21,6 +16,7 @@ exports.handler = async (event) => {
     try {
         const { prompt } = JSON.parse(event.body);
 
+        // Prompt kontrolü
         if (!prompt) {
             return {
                 statusCode: 400,
@@ -28,22 +24,25 @@ exports.handler = async (event) => {
             };
         }
 
+        // OpenRouter API isteği için payload
         const payload = {
             model: "deepseek/deepseek-r1-0528-qwen3-8b",
             messages: [{ role: "user", content: prompt }]
         };
-        
-        const apiUrl = `https://openrouter.ai/api/v1/chat/completions`;
 
-        const response = await fetch(apiUrl, {
+        // OpenRouter API çağrısı
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${openrouterApiKey}` // API anahtarını güvenli bir şekilde kullan
+                'Authorization': `Bearer ${openrouterApiKey}`,
+                'HTTP-Referer': 'https://eywallahai-chat.github.io/',
+                'X-Title': 'Eywallah AI Orion 1'
             },
             body: JSON.stringify(payload)
         });
 
+        // Hata kontrolü
         if (!response.ok) {
             const errorBody = await response.text();
             console.error("OpenRouter API hata yanıtı:", response.status, errorBody);
@@ -53,6 +52,7 @@ exports.handler = async (event) => {
             };
         }
 
+        // Başarılı yanıt
         const result = await response.json();
         const aiReply = result.choices?.[0]?.message?.content || 'Hata: AI cevap veremedi';
 
@@ -64,8 +64,7 @@ exports.handler = async (event) => {
         console.error("API çağrılırken hata oluştu:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ reply: `Sunucu hatası: ${error.message}` })
+            body: JSON.stringify({ error: `Sunucu hatası: ${error.message}` })
         };
     }
 };
-
