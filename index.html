@@ -102,7 +102,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer EYWALLAH_AI_ORION'
+            'Authorization': 'Bearer Eywallah_AI_Orion'
           },
           body: JSON.stringify({
             model: 'deepseek/deepseek-r1-0528-qwen3-8b',
@@ -111,7 +111,7 @@
         });
 
         const data = await response.json();
-        const aiReply = data.choices?.[0]?.message?.content || 'Hata: AI cevap veremedi';
+        const aiReply = data.choices?.[0]?.message?.content || 'Hata: AI maalesef cevap veremedi';
         saveMessage('ai', aiReply);
         displayMessages();
       } catch (err) {
