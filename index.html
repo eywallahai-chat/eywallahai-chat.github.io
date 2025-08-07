@@ -25,7 +25,7 @@
             border: 2px solid #1a1a1a;
         }
 
-        /* Sohbet menüsü için yeni stiller */
+        /* Sidebar stilleri, daha akışkan bir düzen için güncellendi */
         .sidebar {
             width: 12.5vw;
             min-width: 200px;
@@ -34,12 +34,13 @@
             padding: 20px;
             box-sizing: border-box;
             transition: transform 0.3s ease-in-out;
-            transform: translateX(-100%);
+            /* Küçük ekranlarda sidebar'ı gizle */
             position: fixed;
             top: 0;
             left: 0;
             height: 100%;
-            z-index: 50; /* Diğer her şeyin önünde olmalı */
+            z-index: 50;
+            transform: translateX(-100%);
         }
         .sidebar.open {
             transform: translateX(0);
@@ -49,7 +50,7 @@
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 60; /* Sidebar'ın da önünde olmalı */
+            z-index: 60;
             background: none;
             border: none;
             cursor: pointer;
@@ -57,6 +58,20 @@
             color: #f2f2f2;
             padding: 0;
         }
+
+        /* Büyük ekranlarda menüyü her zaman göster, ana içeriği iterek yer aç */
+        @media (min-width: 1024px) {
+            .sidebar {
+                position: static;
+                transform: translateX(0);
+                min-width: 200px;
+                max-width: 300px;
+            }
+            #menuToggleBtn {
+                display: none;
+            }
+        }
+
         .sidebar-buttons button {
             width: 100%;
             margin-bottom: 10px;
@@ -69,7 +84,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-950 text-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-950 text-gray-100 flex min-h-screen">
 
     <!-- Sol üstteki menü butonu -->
     <button id="menuToggleBtn">☰</button>
@@ -84,11 +99,14 @@
                 Sohbeti Sil
             </button>
         </div>
-        <!-- Diğer sohbetler buraya eklenebilir -->
+        <!-- Burası Sohbetlerin listelendiği alandır. -->
+        <ul id="chatList" class="mt-4 space-y-2 overflow-y-auto scrollbar-thin">
+            <!-- Sohbetler buraya JavaScript ile eklenecek -->
+        </ul>
     </div>
 
     <!-- Ana içerik konteyneri -->
-    <div class="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col h-[90vh] overflow-hidden">
+    <div class="bg-gray-900 rounded-2xl shadow-2xl flex-1 flex flex-col h-[90vh] overflow-hidden m-4 lg:m-8">
         <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
             <h1 class="text-4xl font-extrabold text-white tracking-tight">
                 Eywallah AI <span class="text-emerald-400">Orion 1</span>
