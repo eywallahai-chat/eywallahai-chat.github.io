@@ -1,7 +1,7 @@
 import { egitim } from './egitim.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM içeriği yüklendi. Uygulama başlatılıyor mu ...");
+    console.log("DOM içeriği yüklendi. Uygulama başlatılıyor...");
 
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
@@ -11,11 +11,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const modesContent = document.getElementById('modesContent');
     const callNetlifyBtn = document.getElementById('callNetlifyBtn');
     const netlifyResult = document.getElementById('netlifyResult');
+    
+    // Yeni eklenen elementler
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sidebar = document.getElementById('sidebar');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const deleteChatBtn = document.getElementById('deleteChatBtn');
 
     // Elementlerin varlığını kontrol etme
     const elementsToCheck = {
-        chatInput, sendMessageBtn, chatArea, modesToggle,
-        modesPanel, modesContent, callNetlifyBtn, netlifyResult
+        chatInput, sendMessageBtn, chatArea, modesToggle, modesPanel, modesContent, callNetlifyBtn, netlifyResult,
+        menuToggleBtn, sidebar, newChatBtn, deleteChatBtn
     };
 
     for (const key in elementsToCheck) {
@@ -114,7 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         chatArea.appendChild(messageDiv);
     }
-
+    
+    // Modlar panelini açıp kapatma fonksiyonu
     function toggleModesPanel() {
         if (!modesPanel) return;
         modesPanel.classList.toggle('hidden');
@@ -123,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Modlar panelinin içeriğini yükleme fonksiyonu
     function loadModesContent() {
         if (!modesContent) return;
         modesContent.innerHTML = '';
@@ -187,6 +195,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Yeni eklenen fonksiyonlar
+    function toggleSidebar() {
+        if (sidebar) {
+            sidebar.classList.toggle('open');
+        }
+    }
+
+    function startNewChat() {
+        console.log("Yeni sohbet başlatılıyor...");
+        // TODO: Yeni sohbet başlatma mantığı buraya eklenecek
+        chatArea.innerHTML = ""; // Sohbet alanını temizle
+        toggleSidebar(); // Menüyü kapat
+    }
+
+    function deleteCurrentChat() {
+        console.log("Sohbet siliniyor...");
+        // TODO: Sohbet silme mantığı buraya eklenecek
+        chatArea.innerHTML = ""; // Sohbet alanını temizle
+        toggleSidebar(); // Menüyü kapat
+    }
+
     // Event dinleyicileri
     if (sendMessageBtn) {
         sendMessageBtn.addEventListener('click', () => {
@@ -194,18 +223,21 @@ document.addEventListener('DOMContentLoaded', () => {
             sendMessage();
         });
     }
+
     if (modesToggle) {
         modesToggle.addEventListener('click', () => {
             console.log("Mod paneli tuşuna tıklandı.");
             toggleModesPanel();
         });
     }
+
     if (callNetlifyBtn) {
         callNetlifyBtn.addEventListener('click', () => {
             console.log("Netlify test tuşuna tıklandı.");
             callNetlifyFunction();
         });
     }
+
     if (chatInput) {
         chatInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -214,6 +246,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 sendMessage();
             }
         });
+    }
+
+    if (menuToggleBtn) {
+        menuToggleBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', startNewChat);
+    }
+
+    if (deleteChatBtn) {
+        deleteChatBtn.addEventListener('click', deleteCurrentChat);
     }
 
     // Mod panelini ilk açıldığında doldur
