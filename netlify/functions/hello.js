@@ -1,25 +1,9 @@
-import fetch from 'node-fetch';
+const { egitim } = require('../../egitim.js');
 
-export const handler = async (event) => {
-    // CORS headers
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-    };
-
-    // Handle preflight requests
-    if (event.httpMethod === 'OPTIONS') {
-        return {
-            statusCode: 200,
-            headers
-        };
-    }
-
+exports.handler = async (event) => {
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
-            headers,
             body: JSON.stringify({ error: 'Method Not Allowed' })
         };
     }
@@ -27,40 +11,37 @@ export const handler = async (event) => {
     try {
         const { messages } = JSON.parse(event.body);
 
+        // Sistem promptunu mesajların başına ekle
+        const fullMessages = [
+            { role: 'system', content: egitim.sistemPrompt },
+            ...messages
+        ];
+
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.EYWALLAH_AI_ORION}`,
+                'Authorization': `Bearer ${process.env.EYWALLAH_AI_GEMINI}`,
                 'HTTP-Referer': 'https://eywallahai-chat.github.io/',
                 'X-Title': 'Eywallah AI Orion 1'
             },
             body: JSON.stringify({
                 model: 'deepseek/deepseek-r1-0528-qwen3-8b',
-                messages: messages,
+                messages: fullMessages,
                 temperature: 0.7,
-                max_tokens: 2000,
-                stream: false
+                max_tokens: 2000
             })
         });
 
         if (!response.ok) {
-            const error = await response.text();
-            console.error('OpenRouter Error:', error);
-            return {
-                statusCode: response.status,
-                headers,
-                body: JSON.stringify({
-                    error: `OpenRouter API Error: ${response.status}`,
-                    details: error
-                })
-            };
+            const errorText = await response.text();
+            console.error('OpenRouter API Error:', response.status, errorText);
+            throw new Error(`API Error: ${response.status}`);
         }
 
         const data = await response.json();
         return {
             statusCode: 200,
-            headers,
             body: JSON.stringify(data)
         };
 
@@ -68,7 +49,6 @@ export const handler = async (event) => {
         console.error('Function Error:', error);
         return {
             statusCode: 500,
-            headers,
             body: JSON.stringify({
                 error: 'Internal Server Error',
                 message: error.message
