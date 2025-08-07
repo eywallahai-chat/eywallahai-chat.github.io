@@ -1,9 +1,8 @@
 // netlify/functions/hello.js
 export async function handler(event, context) {
     // OpenRouter API Anahtarını Netlify ortam değişkeni olarak ayarla!
-    const apiKey = process.env.OPENROUTER_API_KEY; 
+    const apiKey = process.env.Eywallah_AI_Orion; 
 
-    // Orijinal sunucudan gelen isteklerin kaynağını kontrol etme
     const allowedOrigins = ["https://eywallah-ai.netlify.app", "http://localhost:8888"];
     const origin = event.headers.origin;
 
@@ -13,7 +12,6 @@ export async function handler(event, context) {
         "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     };
 
-    // Preflight (OPTIONS) istekleri için hızlı yanıt
     if (event.httpMethod === "OPTIONS") {
         return {
             statusCode: 200,
@@ -22,7 +20,6 @@ export async function handler(event, context) {
         };
     }
 
-    // Fonksiyonun GET isteğiyle çağrılması durumu (test için)
     if (event.httpMethod === "GET") {
         return {
             statusCode: 200,
@@ -31,7 +28,6 @@ export async function handler(event, context) {
         };
     }
 
-    // POST isteği ile asıl işlem
     if (event.httpMethod !== "POST") {
         return {
             statusCode: 405,
@@ -44,7 +40,6 @@ export async function handler(event, context) {
         const requestBody = JSON.parse(event.body || "{}");
         const userMessage = requestBody.message || "Merhaba!";
 
-        // OpenRouter API çağrısı
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -54,7 +49,6 @@ export async function handler(event, context) {
                 "X-Title": "Eywallah AI" 
             },
             body: JSON.stringify({
-                // OpenRouter'daki Deepseek modeli
                 model: "deepseek-ai/deepseek-chat", 
                 messages: [
                     {
@@ -79,8 +73,6 @@ export async function handler(event, context) {
         }
 
         const data = await response.json();
-        console.log("API cevabı:", JSON.stringify(data, null, 2));
-
         const assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bir daha dene.";
 
         return {
