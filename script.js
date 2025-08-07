@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let aiResponse = "Yanıt alınamadı.";
 
         try {
-            const res = await fetch('/.netlify/functions/hello', {
+            const res = await fetch('/.netlify/functions/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
