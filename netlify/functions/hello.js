@@ -39,7 +39,7 @@ async function getAIResponse(prompt) {
         if (!response.ok) {
             const errorBody = await response.text();
             console.error("OpenRouter API hata yanıtı:", response.status, errorBody);
-            throw new Error(`OpenRouter API hatası: ${response.status} - ${errorBody}`);
+            return `OpenRouter API hatası: ${response.status} - ${errorBody}`;
         }
 
         const result = await response.json();
@@ -58,16 +58,24 @@ async function getAIResponse(prompt) {
 
 // Netlify fonksiyonunun ana işleyicisi
 exports.handler = async (event) => {
+    let client;
     try {
+        client = new Client({
+            connectionString: process.env.NEON_DB_URL,
+            ssl: {
+                rejectUnauthorized: false
+            }
+        });
+        await client.connect();
+
         // GET ve POST isteklerini işleme
         if (event.httpMethod === 'GET') {
             const { action, userId, chatId } = event.queryStringParameters;
-            await neonClient.connect();
             
             switch (action) {
                 case 'get_chats':
                     const chatsQuery = `SELECT id, title FROM chats WHERE user_id = $1 ORDER BY created_at DESC`;
-                    const chatsResult = await neonClient.query(chatsQuery, [userId]);
+                    const chatsResult = await client.query(chatsQuery, [userId]);
                     return {
                         statusCode: 200,
                         body: JSON.stringify(chatsResult.rows)
@@ -75,7 +83,7 @@ exports.handler = async (event) => {
                 
                 case 'get_messages':
                     const messagesQuery = `SELECT sender, text FROM messages WHERE chat_id = $1 ORDER BY created_at ASC`;
-                    const messagesResult = await neonClient.query(messagesQuery, [chatId]);
+                    const messagesResult = await client.query(messagesQuery, [chatId]);
                     return {
                         statusCode: 200,
                         body: JSON.stringify(messagesResult.rows)
@@ -95,12 +103,11 @@ exports.handler = async (event) => {
             }
         } else if (event.httpMethod === 'POST') {
             const { action, userId, chatId, message } = JSON.parse(event.body);
-            await neonClient.connect();
 
             switch (action) {
                 case 'new_chat':
                     const newChatQuery = `INSERT INTO chats (user_id, title) VALUES ($1, $2) RETURNING id`;
-                    const newChatResult = await neonClient.query(newChatQuery, [userId, 'Yeni Sohbet']);
+                    const newChatResult = await client.query(newChatQuery, [userId, 'Yeni Sohbet']);
                     return {
                         statusCode: 200,
                         body: JSON.stringify({ chatId: newChatResult.rows[0].id })
@@ -108,7 +115,7 @@ exports.handler = async (event) => {
 
                 case 'delete_chat':
                     const deleteChatQuery = `DELETE FROM chats WHERE id = $1 AND user_id = $2`;
-                    await neonClient.query(deleteChatQuery, [chatId, userId]);
+                    await client.query(deleteChatQuery, [chatId, userId]);
                     return {
                         statusCode: 200,
                         body: JSON.stringify({ success: true })
@@ -118,14 +125,14 @@ exports.handler = async (event) => {
                     const insertMessageQuery = `
                         INSERT INTO messages (chat_id, sender, text) VALUES ($1, $2, $3)
                     `;
-                    await neonClient.query(insertMessageQuery, [chatId, 'user', message]);
+                    await client.query(insertMessageQuery, [chatId, 'user', message]);
                     
                     const aiResponse = await getAIResponse(message);
                     
                     const insertAiMessageQuery = `
                         INSERT INTO messages (chat_id, sender, text) VALUES ($1, $2, $3)
                     `;
-                    await neonClient.query(insertAiMessageQuery, [chatId, 'ai', aiResponse]);
+                    await client.query(insertAiMessageQuery, [chatId, 'ai', aiResponse]);
 
                     return {
                         statusCode: 200,
@@ -146,8 +153,8 @@ exports.handler = async (event) => {
             body: JSON.stringify({ reply: `Sunucu hatası: ${error.message}` })
         };
     } finally {
-        if (neonClient) {
-            await neonClient.end();
+        if (client) {
+            await client.end();
         }
     }
 };
