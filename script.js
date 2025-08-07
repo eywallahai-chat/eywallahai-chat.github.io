@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatBtn = document.getElementById('newChatBtn');
     const deleteChatBtn = document.getElementById('deleteChatBtn');
     
-    // API Anahtarı (güvenlik için .env dosyasından alınmalı)
-    const API_KEY = process.env.OPENROUTER_API_KEY || 'EYWALLAH_AI_ORION';
+    // API Anahtarı
+    const API_KEY = 'EYWALLAH_AI_ORION';
     
     // Sohbet yönetimi için değişkenler
     let messages = [];
@@ -48,7 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${API_KEY}`
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'HTTP-Referer': 'https://eywallahai-chat.github.io/',
+                    'X-Title': 'Eywallah AI Orion 1'
                 },
                 body: JSON.stringify({
                     model: 'deepseek/deepseek-r1-0528-qwen3-8b',
