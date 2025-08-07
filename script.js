@@ -1,3 +1,4 @@
+// egitim.js modülünü içeri aktarır
 import { egitim } from './egitim.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,11 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(`Hata: '${key}' ID'sine sahip HTML elementi bulunamadı. Lütfen index.html dosyasını kontrol edin.`);
         }
     }
-
-    // Egitim modülünün yüklenip yüklenmediğini kontrol et
-    if (typeof egitim === 'undefined' || !egitim) {
-        console.error("Hata: 'egitim.js' modülü yüklenemedi veya boş. Lütfen dosya yolunu ve içeriğini kontrol edin.");
-    }
     
     // AI yanıtı gelene kadar "yazıyor..." animasyonunu gösterir
     function displayTypingIndicator() {
@@ -64,16 +60,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sohbet listesini arka uçtan (Netlify Fonksiyonu) yükleme
     async function loadChats() {
+        if (chatList) {
+            chatList.innerHTML = '';
+        }
         try {
             // Netlify fonksiyonunu hello.js olarak çağırma
             const response = await fetch(`/.netlify/functions/hello?action=get_chats&userId=${userId}`);
+            
+            // Yanıtın geçerli bir JSON olup olmadığını kontrol etme
+            if (!response.ok) {
+                throw new Error(`Sunucu hatası: ${response.status} - ${response.statusText}`);
+            }
+
             const chats = await response.json();
             
-            if (chatList) {
-                chatList.innerHTML = '';
+            // Yanıtın bir dizi olduğundan emin olma
+            if (!Array.isArray(chats)) {
+                throw new Error("Sunucudan geçerli bir sohbet listesi alınamadı.");
             }
+            
             if (chats.length === 0) {
                 // Eğer hiç sohbet yoksa, otomatik olarak yeni bir tane oluştur
+                console.log("Hiç sohbet bulunamadı. Yeni sohbet başlatılıyor...");
                 await startNewChat();
                 return;
             }
@@ -81,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let isFirstChat = true;
             chats.forEach(chat => {
                 const chatItem = document.createElement('li');
-                chatItem.classList.add('chat-item', 'p-2', 'rounded-md', 'text-sm');
+                chatItem.classList.add('chat-item', 'p-2', 'rounded-md', 'text-sm', 'bg-gray-700', 'hover:bg-gray-600', 'cursor-pointer');
                 chatItem.textContent = chat.title || `Sohbet ${chat.id.substring(0, 8)}`;
                 chatItem.dataset.chatId = chat.id;
                 
@@ -100,7 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error("Sohbet listesi yüklenirken hata oluştu:", error);
-            displayMessage(`Sohbetler yüklenemedi: ${error.message}`, 'ai');
+            // Hata durumunda kullanıcıya bilgilendirici mesaj göster
+            displayMessage(`Sohbetler yüklenemedi. Sunucu hatası veya geçersiz yanıt. Lütfen Netlify fonksiyonunuzu kontrol edin. Hata: ${error.message}`, 'ai');
         }
     }
 
@@ -128,7 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Netlify fonksiyonunu hello.js olarak çağırma
-            const response = await fetch(`/.netlify/functions/hello?action=get_messages&userId=${userId}&chatId=${chatId}`);
+            const response = await fetch(`/.netlify/functions/hello?action=get_messages&chatId=${chatId}`);
+            if (!response.ok) {
+                throw new Error(`Sunucu hatası: ${response.status} - ${response.statusText}`);
+            }
+
             const messages = await response.json();
             
             if (chatArea) {
@@ -154,8 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mesaj gönderme fonksiyonu
     async function sendMessage() {
         console.log("sendMessage fonksiyonu çağrıldı.");
+        // Kritik kontrol: currentChatId'nin boş olup olmadığını kontrol et
         if (!chatInput || !sendMessageBtn || !currentChatId) {
-            console.error("Gönderme butonu, giriş alanı veya seçili sohbet bulunamadı.");
+            console.error("Gönderme butonu, giriş alanı veya seçili sohbet bulunamadı. Lütfen sohbet listesinin yüklendiğinden emin olun.");
+            displayMessage("Sohbet listesi yüklenemediği için mesaj gönderilemiyor. Lütfen arka uç (backend) bağlantısını kontrol edin ve sayfayı yenileyin.", 'ai');
             return;
         }
 
@@ -279,6 +294,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Netlify fonksiyonunu hello.js olarak çağırma
             const res = await fetch('/.netlify/functions/hello?action=test_netlify');
+            if (!res.ok) {
+                throw new Error(`Netlify fonksiyon hatası: ${res.status}`);
+            }
             const data = await res.json();
             netlifyResult.textContent = JSON.stringify(data, null, 2);
         } catch (error) {
@@ -290,12 +308,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Yeni sohbet başlatma fonksiyonu
     async function startNewChat() {
         try {
-            // Netlify fonksiyonunu hello.js olarak çağırma
             const response = await fetch('/.netlify/functions/hello', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'new_chat', userId })
             });
+            if (!response.ok) {
+                throw new Error(`Sunucu hatası: ${response.status}`);
+            }
             const newChat = await response.json();
             if (newChat.chatId) {
                 currentChatId = newChat.chatId;
@@ -313,12 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteCurrentChat() {
         if (!currentChatId) return;
         try {
-            // Netlify fonksiyonunu hello.js olarak çağırma
             const response = await fetch('/.netlify/functions/hello', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'delete_chat', userId, chatId: currentChatId })
             });
+            if (!response.ok) {
+                throw new Error(`Sunucu hatası: ${response.status}`);
+            }
             await response.json();
             currentChatId = null;
             await loadChats();
@@ -366,5 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Uygulama başladığında sohbetleri yükle
     loadChats();
+    // Modlar içeriğini de başlangıçta yükle
     loadModesContent();
 });
