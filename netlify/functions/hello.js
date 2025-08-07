@@ -6,7 +6,7 @@ const fetch = require('node-fetch');
 
 // Ortam değişkeni ile AI API anahtarını alıyoruz.
 // NOT: Netlify'da 'OPENROUTER_API_KEY' adında bir ortam değişkeni tanımlamanız gerekiyor.
-const openrouterApiKey = process.env.Eywallah_AI_Orion;
+const openrouterApiKey = process.env.EYWALLAH_AI_ORION;
 
 // Netlify fonksiyonunun ana işleyicisi
 exports.handler = async (event) => {
