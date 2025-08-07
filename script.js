@@ -1,7 +1,8 @@
-// script.js
 import { egitim } from './egitim.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM içeriği yüklendi. Uygulama başlatılıyor...");
+
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatArea = document.getElementById('chatArea');
@@ -11,21 +12,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const callNetlifyBtn = document.getElementById('callNetlifyBtn');
     const netlifyResult = document.getElementById('netlifyResult');
 
-    // Hata kontrolü, elementlerin var olduğundan emin olmak için
-    const elements = { chatInput, sendMessageBtn, chatArea, modesToggle, modesPanel, modesContent, callNetlifyBtn, netlifyResult };
-    for (const key in elements) {
-        if (!elements[key]) console.error(`Hata: '${key}' elementi bulunamadı!`);
+    // Elementlerin varlığını kontrol etme
+    const elementsToCheck = {
+        chatInput, sendMessageBtn, chatArea, modesToggle,
+        modesPanel, modesContent, callNetlifyBtn, netlifyResult
+    };
+
+    for (const key in elementsToCheck) {
+        if (!elementsToCheck[key]) {
+            console.error(`Hata: '${key}' ID'sine sahip HTML elementi bulunamadı. Lütfen index.html dosyasını kontrol edin.`);
+        }
     }
 
     async function sendMessage() {
-        if (!chatInput) return;
+        if (!chatInput || !sendMessageBtn) {
+            console.error("Gönderme butonu veya giriş alanı bulunamadı.");
+            return;
+        }
+
         const userMessage = chatInput.value.trim();
         if (userMessage === '') return;
 
         displayMessage(userMessage, 'user');
         chatInput.value = '';
         if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-        
+
         let aiResponse = "Yanıt alınamadı.";
 
         try {
@@ -68,14 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.classList.add('justify-start');
             messageDiv.innerHTML = `<div class="bg-gray-700 text-gray-200 p-3 rounded-xl max-w-xs shadow-md">${message}</div>`;
         }
-
         chatArea.appendChild(messageDiv);
     }
 
     function toggleModesPanel() {
         if (!modesPanel) return;
         modesPanel.classList.toggle('hidden');
-
         if (!modesPanel.classList.contains('hidden')) {
             loadModesContent();
         }
@@ -130,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
         try {
             const res = await fetch('/.netlify/functions/hello', {
-                method: 'GET' // Test için GET metodu kullanılıyor
+                method: 'GET'
             });
             const data = await res.json();
             netlifyResult.textContent = JSON.stringify(data, null, 2);
@@ -140,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Event dinleyicileri
     if (sendMessageBtn) sendMessageBtn.addEventListener('click', sendMessage);
     if (modesToggle) modesToggle.addEventListener('click', toggleModesPanel);
     if (callNetlifyBtn) callNetlifyBtn.addEventListener('click', callNetlifyFunction);
@@ -152,5 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Mod panelini ilk açıldığında doldur
     loadModesContent();
 });
