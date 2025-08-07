@@ -1,1 +1,17 @@
+{
+  "name": "chat-app-netlify-neon",
+  "version": "1.0.0",
+  "description": "A chat application using Netlify Functions and Neon DB.",
+  "main": "netlify/functions/hello.js",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.7.3",
+    "node-fetch": "^2.6.7"
+  }
+}
 
