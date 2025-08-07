@@ -1,17 +1,14 @@
-const { egitim } = require('../../egitim.js');
+import fetch from 'node-fetch';
+import { egitim } from '../../egitim.js';
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
     if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: 'Method Not Allowed' })
-        };
+        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
     try {
         const { messages } = JSON.parse(event.body);
 
-        // Sistem promptunu mesajların başına ekle
         const fullMessages = [
             { role: 'system', content: egitim.sistemPrompt },
             ...messages
@@ -22,45 +19,26 @@ exports.handler = async (event) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.EYWALLAH_AI_GEMINI}`,
-                'HTTP-Referer': 'https://eywallahai-chat.github.io/',
-                'X-Title': 'Eywallah AI Orion 1'
+                'HTTP-Referer': 'https://eywallahai.netlify.app',
+                'X-Title': 'Eywallah AI – Orion 1'
             },
             body: JSON.stringify({
                 model: 'google/gemma-3-27b-it:free',
                 messages: fullMessages.map(msg => ({
                     role: msg.role,
-                    content: [
-                        {
-                            type: 'text',
-                            text: msg.content
-                        }
-                    ]
+                    content: [{ type: 'text', text: msg.content }]
                 })),
                 temperature: 0.7,
                 max_tokens: 2000
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('OpenRouter API Error:', response.status, errorText);
-            throw new Error(`API Error: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(await response.text());
 
         const data = await response.json();
-        return {
-            statusCode: 200,
-            body: JSON.stringify(data)
-        };
-
-    } catch (error) {
-        console.error('Function Error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                error: 'Internal Server Error',
-                message: error.message
-            })
-        };
+        return { statusCode: 200, body: JSON.stringify(data) };
+    } catch (err) {
+        console.error(err);
+        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
     }
 };
