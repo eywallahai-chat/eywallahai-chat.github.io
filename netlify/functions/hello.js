@@ -15,7 +15,7 @@ const neonClient = new Client({
 });
 
 // AI API için gerekli ortam değişkeni
-const eywallahAiOrionApiKey = process.env.EYWALLAH_AI_ORION;
+const eywallahAiOrionApiKey = process.env.Eywallah_AI_Orion;
 
 // OpenRouter API'den yanıt alma
 async function getAIResponse(prompt) {
