@@ -1,9 +1,7 @@
 // netlify/functions/hello.js
 export async function handler(event, context) {
-    // API anahtarını Netlify ortam değişkenlerinden alıyor
     const apiKey = process.env.Eywallah_AI_Orion;
 
-    // Sadece belirlenen sitelerden gelen isteklere izin verir.
     const allowedOrigins = ["https://eywallahai.netlify.app", "http://localhost:8888"];
     const origin = event.headers.origin;
 
@@ -13,7 +11,6 @@ export async function handler(event, context) {
         "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     };
 
-    // Eğer API anahtarı yoksa hata döndürür.
     if (!apiKey) {
         return {
             statusCode: 500,
@@ -22,12 +19,10 @@ export async function handler(event, context) {
         };
     }
 
-    // OPTIONS isteğine yanıt verir.
     if (event.httpMethod === "OPTIONS") {
         return { statusCode: 200, headers, body: "OK" };
     }
 
-    // GET isteğine yanıt verir (fonksiyonun canlı olduğunu kontrol etmek için).
     if (event.httpMethod === "GET") {
         return {
             statusCode: 200,
@@ -36,7 +31,6 @@ export async function handler(event, context) {
         };
     }
 
-    // Sadece POST isteklerine izin verir.
     if (event.httpMethod !== "POST") {
         return {
             statusCode: 405,
@@ -45,10 +39,8 @@ export async function handler(event, context) {
         };
     }
 
-    // Markdown'u temel HTML'e çeviren yardımcı fonksiyon
     function convertMarkdownToHtml(markdown) {
         if (!markdown) return "";
-        // **kalın** formatını <b>kalın</b> formatına çevirir
         return markdown.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     }
 
@@ -56,7 +48,6 @@ export async function handler(event, context) {
         const requestBody = JSON.parse(event.body || "{}");
         const userMessage = requestBody.message || "Merhaba!";
 
-        // OpenRouter API'ye POST isteği gönderir
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -66,7 +57,7 @@ export async function handler(event, context) {
                 "X-Title": "Eywallah AI"
             },
             body: JSON.stringify({
-                "model": "deepseek/deepseek-r1-distill-llama-70b:free",
+                "model": "deepseek/deepseek-r1-0528-qwen3-8b:free",
                 "messages": [
                     {
                         "role": "system",
@@ -88,8 +79,6 @@ export async function handler(event, context) {
 
         const data = await response.json();
         let assistantMessage = data.choices?.[0]?.message?.content?.trim() || "Cevap alınamadı, bir daha dene.";
-        
-        // Gelen metni HTML'e çevirir
         assistantMessage = convertMarkdownToHtml(assistantMessage);
 
         return {
