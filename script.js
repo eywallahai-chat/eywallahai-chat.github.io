@@ -3,6 +3,7 @@ import { egitim } from './egitim.js';
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM içeriği yüklendi. Uygulama başlatılıyor...");
 
+    // HTML elementleri
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatArea = document.getElementById('chatArea');
@@ -11,17 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const modesContent = document.getElementById('modesContent');
     const callNetlifyBtn = document.getElementById('callNetlifyBtn');
     const netlifyResult = document.getElementById('netlifyResult');
-    
-    // Yeni eklenen elementler
     const menuToggleBtn = document.getElementById('menuToggleBtn');
     const sidebar = document.getElementById('sidebar');
     const newChatBtn = document.getElementById('newChatBtn');
     const deleteChatBtn = document.getElementById('deleteChatBtn');
+    const chatList = document.getElementById('chatList');
+    
+    // Geçici bir kullanıcı ID'si atama
+    const userId = "temp_user_id";
+    let currentChatId = null;
 
     // Elementlerin varlığını kontrol etme
     const elementsToCheck = {
         chatInput, sendMessageBtn, chatArea, modesToggle, modesPanel, modesContent, callNetlifyBtn, netlifyResult,
-        menuToggleBtn, sidebar, newChatBtn, deleteChatBtn
+        menuToggleBtn, sidebar, newChatBtn, deleteChatBtn, chatList
     };
 
     for (const key in elementsToCheck) {
@@ -58,10 +62,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Sohbet listesini arka uçtan (Netlify Fonksiyonu) yükleme
+    async function loadChats() {
+        try {
+            // Netlify fonksiyonunu hello.js olarak çağırma
+            const response = await fetch(`/.netlify/functions/hello?action=get_chats&userId=${userId}`);
+            const chats = await response.json();
+            
+            if (chatList) {
+                chatList.innerHTML = '';
+            }
+            if (chats.length === 0) {
+                // Eğer hiç sohbet yoksa, otomatik olarak yeni bir tane oluştur
+                await startNewChat();
+                return;
+            }
+
+            let isFirstChat = true;
+            chats.forEach(chat => {
+                const chatItem = document.createElement('li');
+                chatItem.classList.add('chat-item', 'p-2', 'rounded-md', 'text-sm');
+                chatItem.textContent = chat.title || `Sohbet ${chat.id.substring(0, 8)}`;
+                chatItem.dataset.chatId = chat.id;
+                
+                chatItem.addEventListener('click', () => {
+                    selectChat(chat.id);
+                });
+
+                if (chatList) {
+                    chatList.appendChild(chatItem);
+                }
+
+                if (isFirstChat) {
+                    selectChat(chat.id);
+                    isFirstChat = false;
+                }
+            });
+        } catch (error) {
+            console.error("Sohbet listesi yüklenirken hata oluştu:", error);
+            displayMessage(`Sohbetler yüklenemedi: ${error.message}`, 'ai');
+        }
+    }
+
+    // Sohbeti seçme ve mesajlarını yükleme
+    async function selectChat(chatId) {
+        if (chatId === currentChatId) return;
+
+        currentChatId = chatId;
+        
+        // Aktif sohbeti vurgula
+        document.querySelectorAll('.chat-item').forEach(item => {
+            item.classList.remove('active', 'bg-emerald-400');
+            item.classList.add('bg-gray-700');
+        });
+        const selectedChatElement = document.querySelector(`[data-chat-id="${chatId}"]`);
+        if (selectedChatElement) {
+            selectedChatElement.classList.add('active', 'bg-emerald-400');
+            selectedChatElement.classList.remove('bg-gray-700');
+        }
+
+        if (chatArea) {
+            chatArea.innerHTML = '';
+            displayMessage('Sohbet yükleniyor...', 'ai');
+        }
+        
+        try {
+            // Netlify fonksiyonunu hello.js olarak çağırma
+            const response = await fetch(`/.netlify/functions/hello?action=get_messages&userId=${userId}&chatId=${chatId}`);
+            const messages = await response.json();
+            
+            if (chatArea) {
+                chatArea.innerHTML = '';
+            }
+            
+            if (messages.length > 0) {
+                messages.forEach(msg => {
+                    displayMessage(msg.text, msg.sender);
+                });
+            } else {
+                if (chatArea) {
+                    displayMessage('Bu sohbette henüz mesaj yok.', 'ai');
+                }
+            }
+            if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+        } catch (error) {
+            console.error("Mesajlar yüklenirken hata oluştu:", error);
+            displayMessage(`Mesajlar yüklenemedi: ${error.message}`, 'ai');
+        }
+    }
+
+    // Mesaj gönderme fonksiyonu
     async function sendMessage() {
         console.log("sendMessage fonksiyonu çağrıldı.");
-        if (!chatInput || !sendMessageBtn) {
-            console.error("Gönderme butonu veya giriş alanı bulunamadı.");
+        if (!chatInput || !sendMessageBtn || !currentChatId) {
+            console.error("Gönderme butonu, giriş alanı veya seçili sohbet bulunamadı.");
             return;
         }
 
@@ -72,18 +166,18 @@ document.addEventListener('DOMContentLoaded', () => {
         chatInput.value = '';
         if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
 
-        // Yazma animasyonunu göster
         displayTypingIndicator();
 
         let aiResponse = "Yanıt alınamadı.";
 
         try {
+            // Netlify fonksiyonunu hello.js olarak çağırma
             const res = await fetch('/.netlify/functions/hello', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message: userMessage })
+                body: JSON.stringify({ action: 'send_message', userId, chatId: currentChatId, message: userMessage })
             });
 
             if (!res.ok) {
@@ -95,17 +189,16 @@ document.addEventListener('DOMContentLoaded', () => {
             aiResponse = data.reply || "Netlify fonksiyonundan boş yanıt geldi.";
             console.log("Netlify fonksiyon yanıtı:", aiResponse);
         } catch (error) {
-            console.error("Netlify fonksiyonu çağrılırken hata oluştu:", error);
-            aiResponse = `Netlify fonksiyonu çağrılırken hata oluştu: ${error.message}`;
+            console.error("Mesaj gönderilirken hata oluştu:", error);
+            aiResponse = `Mesaj gönderilirken hata oluştu: ${error.message}`;
         }
         
-        // Animasyonu kaldır ve cevabı göster
         removeTypingIndicator();
         displayMessage(aiResponse, 'ai');
         if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
-
     }
 
+    // Mesajı DOM'a yazdıran fonksiyon
     function displayMessage(message, sender) {
         if (!chatArea) return;
         const messageDiv = document.createElement('div');
@@ -184,9 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!netlifyResult) return;
         netlifyResult.textContent = 'Netlify fonksiyonu çağrılıyor...';
         try {
-            const res = await fetch('/.netlify/functions/hello', {
-                method: 'GET'
-            });
+            // Netlify fonksiyonunu hello.js olarak çağırma
+            const res = await fetch('/.netlify/functions/hello?action=test_netlify');
             const data = await res.json();
             netlifyResult.textContent = JSON.stringify(data, null, 2);
         } catch (error) {
@@ -195,71 +287,84 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Yeni eklenen fonksiyonlar
+    // Yeni sohbet başlatma fonksiyonu
+    async function startNewChat() {
+        try {
+            // Netlify fonksiyonunu hello.js olarak çağırma
+            const response = await fetch('/.netlify/functions/hello', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'new_chat', userId })
+            });
+            const newChat = await response.json();
+            if (newChat.chatId) {
+                currentChatId = newChat.chatId;
+                await loadChats();
+                selectChat(newChat.chatId);
+            }
+        } catch (error) {
+            console.error("Yeni sohbet başlatılırken hata oluştu:", error);
+            displayMessage(`Yeni sohbet başlatılamadı: ${error.message}`, 'ai');
+        }
+        toggleSidebar();
+    }
+
+    // Sohbeti silme fonksiyonu
+    async function deleteCurrentChat() {
+        if (!currentChatId) return;
+        try {
+            // Netlify fonksiyonunu hello.js olarak çağırma
+            const response = await fetch('/.netlify/functions/hello', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete_chat', userId, chatId: currentChatId })
+            });
+            await response.json();
+            currentChatId = null;
+            await loadChats();
+        } catch (error) {
+            console.error("Sohbet silinirken hata oluştu:", error);
+            displayMessage(`Sohbet silinemedi: ${error.message}`, 'ai');
+        }
+        toggleSidebar();
+    }
+
+    // Sidebar'ı açıp kapama
     function toggleSidebar() {
         if (sidebar) {
             sidebar.classList.toggle('open');
         }
     }
 
-    function startNewChat() {
-        console.log("Yeni sohbet başlatılıyor...");
-        // TODO: Yeni sohbet başlatma mantığı buraya eklenecek
-        chatArea.innerHTML = ""; // Sohbet alanını temizle
-        toggleSidebar(); // Menüyü kapat
-    }
-
-    function deleteCurrentChat() {
-        console.log("Sohbet siliniyor...");
-        // TODO: Sohbet silme mantığı buraya eklenecek
-        chatArea.innerHTML = ""; // Sohbet alanını temizle
-        toggleSidebar(); // Menüyü kapat
-    }
-
     // Event dinleyicileri
     if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', () => {
-            console.log("Gönder tuşuna tıklandı.");
-            sendMessage();
-        });
+        sendMessageBtn.addEventListener('click', sendMessage);
     }
-
     if (modesToggle) {
-        modesToggle.addEventListener('click', () => {
-            console.log("Mod paneli tuşuna tıklandı.");
-            toggleModesPanel();
-        });
+        modesToggle.addEventListener('click', toggleModesPanel);
     }
-
     if (callNetlifyBtn) {
-        callNetlifyBtn.addEventListener('click', () => {
-            console.log("Netlify test tuşuna tıklandı.");
-            callNetlifyFunction();
-        });
+        callNetlifyBtn.addEventListener('click', callNetlifyFunction);
     }
-
     if (chatInput) {
         chatInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                console.log("Enter tuşuna basıldı.");
                 sendMessage();
             }
         });
     }
-
     if (menuToggleBtn) {
         menuToggleBtn.addEventListener('click', toggleSidebar);
     }
-    
     if (newChatBtn) {
         newChatBtn.addEventListener('click', startNewChat);
     }
-
     if (deleteChatBtn) {
         deleteChatBtn.addEventListener('click', deleteCurrentChat);
     }
 
-    // Mod panelini ilk açıldığında doldur
+    // Uygulama başladığında sohbetleri yükle
+    loadChats();
     loadModesContent();
 });
