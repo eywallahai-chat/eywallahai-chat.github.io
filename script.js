@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Elements
     const chatInput = document.getElementById('userInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatArea = document.getElementById('chatArea');
@@ -8,17 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatBtn = document.getElementById('newChatBtn');
     const deleteChatBtn = document.getElementById('deleteChatBtn');
 
-    // Chat state
     let messages = [];
     let currentChatId = null;
 
-    // Initialize
     loadCurrentChat();
     setupEventListeners();
 
     function setupEventListeners() {
         sendMessageBtn?.addEventListener('click', handleSend);
-        chatInput?.addEventListener('keypress', (e) => {
+        chatInput?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSend();
@@ -33,33 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = chatInput?.value.trim();
         if (!text) return;
 
-        try {
-            // Clear input and show user message
-            chatInput.value = '';
-            displayMessage('user', text);
-            
-            // Add to messages array
-            messages.push({ role: 'user', content: text });
-            
-            // Show typing indicator
-            displayTypingIndicator();
+        chatInput.value = '';
+        displayMessage('user', text);
+        messages.push({ role: 'user', content: text });
+        displayTypingIndicator();
 
-            // Call Netlify function
+        try {
             const response = await fetch('/.netlify/functions/hello', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages })
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
 
             const data = await response.json();
-
-            // Remove typing indicator
             removeTypingIndicator();
 
             if (data.choices?.[0]?.message?.content) {
@@ -68,23 +53,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 messages.push({ role: 'assistant', content: aiMessage });
                 saveCurrentChat();
             } else {
-                throw new Error('Invalid response format');
+                throw new Error('Geçersiz API yanıtı');
             }
-
-        } catch (error) {
-            console.error('Chat error:', error);
+        } catch (err) {
+            console.error(err);
             removeTypingIndicator();
-            displayMessage('ai', 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.');
+            displayMessage('ai', 'Üzgünüm, bir hata oluştu. Tekrar deneyin.');
         }
     }
 
     function displayMessage(role, content) {
-        if (!chatArea) return;
-
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', role);
-        
-        // Convert markdown to HTML if it's an AI message
         if (role === 'ai') {
             const formattedContent = content
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -95,44 +75,33 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             messageDiv.textContent = content;
         }
-        
         chatArea.appendChild(messageDiv);
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
     function displayTypingIndicator() {
-        if (!chatArea) return;
-        
         const typingDiv = document.createElement('div');
         typingDiv.id = 'typingIndicator';
         typingDiv.classList.add('message', 'ai');
-        typingDiv.innerHTML = `
-            <div class="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
+        typingDiv.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
         chatArea.appendChild(typingDiv);
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
     function removeTypingIndicator() {
-        const indicator = document.getElementById('typingIndicator');
-        indicator?.remove();
+        document.getElementById('typingIndicator')?.remove();
     }
 
     function startNewChat() {
         currentChatId = Date.now().toString();
         messages = [];
-        if (chatArea) chatArea.innerHTML = '';
+        chatArea.innerHTML = '';
         saveCurrentChat();
         sidebar?.classList.remove('open');
     }
 
     function deleteCurrentChat() {
         if (!currentChatId) return;
-        
         if (confirm('Bu sohbeti silmek istediğinizden emin misiniz?')) {
             localStorage.removeItem(`chat_${currentChatId}`);
             startNewChat();
@@ -141,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveCurrentChat() {
         if (!currentChatId) return;
-        
         localStorage.setItem(`chat_${currentChatId}`, JSON.stringify({
             id: currentChatId,
             messages: messages,
@@ -151,17 +119,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadCurrentChat() {
         const savedChats = Object.keys(localStorage)
-            .filter(key => key.startsWith('chat_'))
-            .map(key => JSON.parse(localStorage.getItem(key)))
+            .filter(k => k.startsWith('chat_'))
+            .map(k => JSON.parse(localStorage.getItem(k)))
             .sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
 
         if (savedChats.length > 0) {
             const lastChat = savedChats[0];
             currentChatId = lastChat.id;
             messages = lastChat.messages;
-            messages.forEach(msg => {
-                displayMessage(msg.role, msg.content);
-            });
+            messages.forEach(msg => displayMessage(msg.role, msg.content));
         } else {
             startNewChat();
         }
