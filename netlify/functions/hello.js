@@ -1,61 +1,78 @@
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
+    // CORS headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    };
+
+    // Handle preflight requests
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers
+        };
+    }
+
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
-            body: 'Yalnızca POST metoduna izin verilir.'
+            headers,
+            body: JSON.stringify({ error: 'Method Not Allowed' })
         };
     }
 
     try {
-        const { prompt, messages } = JSON.parse(event.body);
-
-        if (!prompt) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'Prompt eksik.' })
-            };
-        }
+        const { messages } = JSON.parse(event.body);
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.EYWALLAH_AI_ORION}`,
-                'HTTP-Referer': 'https://eywallahai.netlify.app/',
+                'HTTP-Referer': 'https://eywallahai-chat.github.io/',
                 'X-Title': 'Eywallah AI Orion 1'
             },
             body: JSON.stringify({
                 model: 'deepseek/deepseek-r1-0528-qwen3-8b',
-                messages: [...(messages || []), { role: 'user', content: prompt }],
+                messages: messages,
                 temperature: 0.7,
-                max_tokens: 1000
+                max_tokens: 2000,
+                stream: false
             })
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('OpenRouter API hatası:', response.status, errorText);
+            const error = await response.text();
+            console.error('OpenRouter Error:', error);
             return {
                 statusCode: response.status,
-                body: JSON.stringify({ error: `API Hatası: ${response.status}` })
+                headers,
+                body: JSON.stringify({
+                    error: `OpenRouter API Error: ${response.status}`,
+                    details: error
+                })
             };
         }
 
         const data = await response.json();
         return {
             statusCode: 200,
-            body: JSON.stringify({
-                reply: data.choices[0].message.content
-            })
+            headers,
+            body: JSON.stringify(data)
         };
 
     } catch (error) {
-        console.error('Sunucu hatası:', error);
+        console.error('Function Error:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Sunucu hatası oluştu.' })
+            headers,
+            body: JSON.stringify({
+                error: 'Internal Server Error',
+                message: error.message
+            })
         };
     }
 };
