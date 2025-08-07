@@ -40,7 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let aiResponse = "Yanıt alınamadı.";
 
         try {
-            const res = await fetch('/.netlify/functions/', {
+            // Hata düzeltildi: Netlify fonksiyonunun adı (hello) eklendi
+            const res = await fetch('/.netlify/functions/hello', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
