@@ -1,94 +1,46 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Eywallah AI Orion 1</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-    .scrollbar-thin::-webkit-scrollbar { width: 8px; }
-    .scrollbar-thin::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 10px; }
-    .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #00FFB3; border-radius: 10px; border: 2px solid #1a1a1a; }
-    
-    .dot-flashing {
-      position: relative;
-      width: 10px;
-      height: 10px;
-      border-radius: 5px;
-      background-color: #9880ff;
-      color: #9880ff;
-      animation: dot-flashing 1s infinite linear alternate;
-      animation-delay: 0.5s;
-    }
-    .dot-flashing::before, .dot-flashing::after {
-      content: "";
-      display: inline-block;
-      position: absolute;
-      top: 0;
-    }
-    .dot-flashing::before {
-      left: -15px;
-      width: 10px;
-      height: 10px;
-      border-radius: 5px;
-      background-color: #9880ff;
-      color: #9880ff;
-      animation: dot-flashing 1s infinite alternate;
-      animation-delay: 0s;
-    }
-    .dot-flashing::after {
-      left: 15px;
-      width: 10px;
-      height: 10px;
-      border-radius: 5px;
-      background-color: #9880ff;
-      color: #9880ff;
-      animation: dot-flashing 1s infinite alternate;
-      animation-delay: 1s;
-    }
-    @keyframes dot-flashing {
-      0% { background-color: #9880ff; }
-      50%, 100% { background-color: #ebe6ff; }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Eywallah AI Orion 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body class="bg-gray-950 text-gray-100 flex min-h-screen">
-  <button id="menuToggleBtn" class="fixed top-4 left-4 z-50 lg:hidden">☰</button>
-  
-  <div id="sidebar" class="sidebar">
-    <div class="sidebar-buttons space-y-4 mt-16 lg:mt-4">
-      <button id="newChatBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-        + Yeni Sohbet
-      </button>
-      <button id="deleteChatBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-        🗑 Sohbeti Sil
-      </button>
+    <button id="menuToggleBtn" class="fixed top-4 left-4 z-50 lg:hidden">☰</button>
+    
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-buttons space-y-4 mt-16 lg:mt-4">
+            <button id="newChatBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                + Yeni Sohbet
+            </button>
+            <button id="deleteChatBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                🗑 Sohbeti Sil
+            </button>
+        </div>
+        <div id="chatList" class="mt-6 space-y-2"></div>
     </div>
-    <div id="chatList" class="mt-6 space-y-2"></div>
-  </div>
 
-  <div class="bg-gray-900 rounded-2xl shadow-2xl flex-1 flex flex-col h-[90vh] overflow-hidden m-4 lg:m-8">
-    <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
-      <h1 class="text-4xl font-extrabold text-white tracking-tight">Eywallah AI <span class="text-emerald-400">Orion 1</span></h1>
-    </header>
+    <div class="bg-gray-900 rounded-2xl shadow-2xl flex-1 flex flex-col h-[90vh] overflow-hidden m-4 lg:m-8">
+        <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
+            <h1 class="text-4xl font-extrabold text-white tracking-tight">Eywallah AI <span class="text-emerald-400">Orion 1</span></h1>
+        </header>
 
-    <main class="flex-1 flex overflow-hidden">
-      <div id="chatArea" class="flex-1 flex flex-col p-6 overflow-y-auto scrollbar-thin space-y-4"></div>
-    </main>
+        <main class="flex-1 flex overflow-hidden">
+            <div id="chatArea" class="flex-1 flex flex-col p-6 overflow-y-auto scrollbar-thin space-y-4"></div>
+        </main>
 
-    <div class="p-6 bg-gray-800 rounded-b-2xl flex items-center border-t border-gray-700">
-      <input type="text" id="userInput" placeholder="Mesajınızı buraya yazın..."
-        class="flex-1 bg-gray-700 text-gray-100 placeholder-gray-400 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200 text-lg" />
-      <button id="sendMessageBtn"
-        class="ml-4 bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
-        Gönder
-      </button>
+        <div class="p-6 bg-gray-800 rounded-b-2xl flex items-center border-t border-gray-700">
+            <input type="text" id="userInput" placeholder="Mesajınızı buraya yazın..."
+                class="flex-1 bg-gray-700 text-gray-100 placeholder-gray-400 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-200 text-lg" />
+            <button id="sendMessageBtn"
+                class="ml-4 bg-emerald-500 hover:bg-emerald-600 text-gray-900 font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                Gönder
+            </button>
+        </div>
     </div>
-  </div>
 
-  <script type="module" src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
