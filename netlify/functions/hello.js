@@ -1,5 +1,6 @@
+// netlify/functions/hello.js
 export async function handler(event, context) {
-  const apiKey = process.env.Eywallah_AI_Orion; // Netlify'deki gizli anahtar
+  const apiKey = process.env.Eywallah_AI_Orion; // Netlify ortam değişkeni olarak ayarla!
 
   // Preflight CORS isteği (OPTIONS)
   if (event.httpMethod === "OPTIONS") {
@@ -14,10 +15,11 @@ export async function handler(event, context) {
     };
   }
 
-  const requestBody = JSON.parse(event.body || "{}");
-  const userMessage = requestBody.message || "Selam!";
-
   try {
+    const requestBody = JSON.parse(event.body || "{}");
+    const userMessage = requestBody.message || "Selam!";
+
+    // DeepInfra API çağrısı
     const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
       method: "POST",
       headers: {
@@ -54,7 +56,7 @@ Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde 
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*", // ✨ GitHub’dan çağrılabilsin
+        "Access-Control-Allow-Origin": "*", // CORS izinleri
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ reply: assistantMessage })
@@ -64,7 +66,7 @@ Türkçeyi güzel kullanır, gençlere özel dil esprileri yapar, gerektiğinde 
     return {
       statusCode: 500,
       headers: {
-        "Access-Control-Allow-Origin": "*", // ✨ Hata olsa bile CORS ekle
+        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ reply: `Sunucu hatası: ${error.message}` })
