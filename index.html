@@ -5,23 +5,184 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Eywallah AI – Orion 1</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body class="bg-gray-950 text-gray-100 flex min-h-screen">
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1f2937; /* Tailwind gray-800 */
+      color: #f9fafb; /* Tailwind gray-100 */
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
 
-  <main class="bg-gray-900 rounded-2xl shadow-2xl flex-1 flex flex-col h-[90vh] overflow-hidden m-4 lg:m-8">
-    <header class="p-6 bg-gray-800 rounded-t-2xl flex items-center justify-between">
-      <h1 class="text-3xl font-extrabold">Eywallah AI <span class="text-emerald-400">Orion 1</span></h1>
+    /* Sidebar stilleri (kısa) */
+    aside.sidebar {
+      width: 280px;
+      background-color: #111827; /* gray-900 */
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      box-sizing: border-box;
+      color: #d1d5db; /* gray-300 */
+      overflow-y: auto;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin: 1rem;
+      background-color: #111827;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      height: calc(100vh - 2rem);
+    }
+
+    header, footer {
+      padding: 1rem 1.5rem;
+      background-color: #374151; /* gray-700 */
+      border-radius: 1rem 1rem 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #d1fae5; /* emerald-200 */
+    }
+
+    footer {
+      border-radius: 0 0 1rem 1rem;
+      gap: 1rem;
+    }
+
+    /* Chat alanı */
+    #chatArea {
+      flex: 1;
+      background-color: #1f2937; /* gray-800 */
+      padding: 1rem 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-radius: 0 0 0 0;
+      scroll-behavior: smooth;
+    }
+
+    textarea#userInput {
+      flex: 1;
+      resize: none;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      background-color: #374151; /* gray-700 */
+      color: #f9fafb;
+      border: none;
+      outline: none;
+      max-height: 40vh;
+      min-height: 3rem;
+      line-height: 1.4;
+    }
+
+    button#sendMessageBtn {
+      background-color: #22c55e; /* emerald-500 */
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #000;
+      transition: background-color 0.2s ease;
+    }
+    button#sendMessageBtn:hover {
+      background-color: #16a34a; /* emerald-600 */
+    }
+
+    /* Mesaj balonları */
+    .message {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 20px;
+      word-break: break-word;
+      font-size: 1rem;
+      line-height: 1.4;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    /* Kullanıcı mesajları sağda */
+    .message.user {
+      background-color: #22c55e; /* emerald-500 */
+      color: #000;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      margin-left: auto; /* sağa yasla */
+    }
+
+    /* AI mesajları solda */
+    .message.assistant, .message.ai {
+      background-color: #374151; /* gray-700 */
+      color: #fff;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      margin-right: auto; /* sola yasla */
+    }
+
+    /* Yazma göstergesi */
+    .typing-indicator {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #4ade80; /* emerald-400 */
+      border-radius: 50%;
+      animation: blink 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.3; }
+      40% { opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <aside id="sidebar" class="sidebar">
+    <h2 class="text-xl font-semibold mb-4 text-white">Sohbetler</h2>
+    <button id="newChatBtn" class="w-full bg-emerald-600 text-white py-2 rounded-lg mb-2">+ Yeni Sohbet</button>
+    <button id="deleteChatBtn" class="w-full bg-red-600 text-white py-2 rounded-lg mb-4">🗑 Aktif Sohbeti Sil</button>
+    <input id="searchChats" placeholder="Sohbet ara..." class="w-full p-2 rounded-md bg-gray-800 text-gray-100 mb-3" />
+    <div id="chatList" class="space-y-2 max-h-[60vh] overflow-auto pr-2"></div>
+    <div class="mt-auto pt-6 text-sm text-gray-400">
+      <div>Eywallah AI – Orion 1</div>
+      <div class="mt-2">Model: google/gemma-3-27b-it:free</div>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <h1 class="text-3xl font-extrabold text-emerald-400">Eywallah AI Orion 1</h1>
       <div class="text-sm text-gray-300">Netlify + OpenRouter • Shift+Enter yeni satır</div>
     </header>
 
-    <section class="flex-1 overflow-hidden">
-      <div id="chatArea" class="flex-1 p-6 overflow-y-auto scrollbar-thin space-y-4"></div>
-    </section>
+    <section id="chatArea"></section>
 
-    <footer class="p-6 bg-gray-800 rounded-b-2xl flex items-end border-t border-gray-700 gap-4">
-      <textarea id="userInput" placeholder="Mesajınızı buraya yazın..." class="flex-1 bg-gray-700 p-3 rounded-xl resize-none h-20"></textarea>
-      <button id="sendMessageBtn" class="bg-emerald-500 px-6 py-3 rounded-xl text-gray-900 font-semibold">Gönder</button>
+    <footer>
+      <textarea id="userInput" placeholder="Mesajınızı buraya yazın..." rows="1"></textarea>
+      <button id="sendMessageBtn">Gönder</button>
     </footer>
   </main>
 
