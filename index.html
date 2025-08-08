@@ -6,11 +6,19 @@
   <title>Eywallah AI – Orion 1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Küçük ekstra ayar */
+    /* chatArea kesin tam yükseklik alsın */
+    #chatArea {
+      height: 100%;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 <body class="bg-gray-950 text-gray-100 flex min-h-screen">
   <button id="menuToggleBtn" class="fixed top-4 left-4 z-50 lg:hidden p-2 bg-gray-800 rounded-md">☰</button>
 
-  <aside id="sidebar" class="sidebar">
+  <aside id="sidebar" class="sidebar hidden lg:block w-72 flex flex-col bg-gray-900 p-4">
     <div class="mt-6">
       <h2 class="text-xl font-semibold mb-4">Sohbetler</h2>
       <div class="space-y-3">
@@ -19,9 +27,9 @@
       </div>
     </div>
 
-    <div class="mt-6">
+    <div class="mt-6 flex flex-col flex-grow">
       <input id="searchChats" placeholder="Sohbet ara..." class="w-full p-2 rounded-md bg-gray-800 text-gray-100 mb-3" />
-      <div id="chatList" class="space-y-2 max-h-[60vh] overflow-auto pr-2"></div>
+      <div id="chatList" class="space-y-2 overflow-auto flex-grow pr-2"></div>
     </div>
 
     <div class="mt-auto pt-6 text-sm text-gray-400">
@@ -36,7 +44,7 @@
       <div class="text-sm text-gray-300">Netlify + OpenRouter • Shift+Enter yeni satır</div>
     </header>
 
-    <section class="flex-1 overflow-hidden">
+    <section class="flex-1 overflow-hidden flex flex-col">
       <div id="chatArea" class="flex-1 p-6 overflow-y-auto scrollbar-thin space-y-4"></div>
     </section>
 
@@ -46,7 +54,6 @@
     </footer>
   </main>
 
-  <script type="module" src="egitim.js"></script>
   <script type="module" src="script.js"></script>
 </body>
 </html>
