@@ -19,6 +19,7 @@ let messages = [];
 
 // Karakter temizleme fonksiyonu
 function sanitizeText(text) {
+    if (typeof text !== 'string') return '';
     return text
         .replace(/[\u2010-\u2015]/g, "-") // tüm özel tireleri normal tireye çevir
         .replace(/[\u2018\u2019]/g, "'")   // özel tırnakları normal tırnağa çevir
@@ -37,20 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Bindings
 function bindEvents() {
-    // Chat input events
     chatInput?.addEventListener('keydown', handleInputKeydown);
     chatInput?.addEventListener('input', autoResize);
-    
-    // Button click events
     sendMessageBtn?.addEventListener('click', handleSend);
     menuToggleBtn?.addEventListener('click', toggleSidebar);
     newChatBtn?.addEventListener('click', () => startNewChat(true));
     deleteChatBtn?.addEventListener('click', deleteCurrentChat);
-    
-    // Search functionality
     searchChats?.addEventListener('input', () => renderChatList(searchChats.value));
-    
-    // Window resize event for mobile responsiveness
     window.addEventListener('resize', () => {
         if (window.innerWidth > 1024) sidebar?.classList.remove('open');
     });
@@ -87,7 +81,6 @@ function loadChatIds() {
         const arr = JSON.parse(raw);
         if (!Array.isArray(arr)) return [];
         
-        // Sort by lastUpdated descending
         const mapped = arr.map(id => {
             const item = localStorage.getItem(createChatKey(id));
             if (!item) return null;
@@ -190,9 +183,14 @@ function selectChat(id) {
     const raw = localStorage.getItem(createChatKey(id));
     if (!raw) return startNewChat();
     
-    const obj = JSON.parse(raw);
-    currentChatId = id;
-    messages = Array.isArray(obj.messages) ? obj.messages : [];
+    try {
+        const obj = JSON.parse(raw);
+        currentChatId = id;
+        messages = Array.isArray(obj.messages) ? obj.messages : [];
+    } catch {
+        startNewChat();
+        return;
+    }
     
     renderMessages();
     updateChatList(id);
