@@ -1,106 +1,34 @@
-/* ===== Temel Stil ===== */
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #0a0a0a;
-  color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-}
-
-/* ===== Sidebar ===== */
-.sidebar {
-  width: 280px;
-  background-color: #1a1a1a;
-  color: #f2f2f2;
-  padding: 1.5rem;
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  overflow-y: auto;
-  z-index: 40;
-  transition: transform 0.3s ease-in-out;
-  transform: translateX(-100%);
-}
-
-.sidebar.open {
-  transform: translateX(0);
-}
-
-@media (min-width: 1024px) {
-  .sidebar {
-    position: static;
-    transform: translateX(0);
-    overflow-y: auto;
-  }
-}
-
-/* ===== Chat Ana Alan ===== */
-.chat-container {
-  margin-left: 0;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 1rem 1.5rem;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-}
-
-@media (min-width: 1024px) {
-  .chat-container {
-    margin-left: 280px; /* sidebar genişliği kadar boşluk */
-  }
-}
-
-/* ===== Mesaj Balonları ===== */
 .message {
+  padding: 12px 16px;
+  border-radius: 16px;
   max-width: 80%;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  line-height: 1.5;
   word-wrap: break-word;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  user-select: text;
-  font-size: 1rem;
-  white-space: pre-wrap;
-  transition: background-color 0.3s ease;
 }
 
 .message.user {
-  background-color: #374151;
-  color: #f3f4f6;
-  margin-left: auto;
-  border-bottom-right-radius: 0;
+  background-color: #22c55e; /* tailwind emerald-500 */
+  color: #000;
+  align-self: flex-end;
 }
 
 .message.ai {
-  background-color: #065f46;
-  color: #f3f4f6;
-  margin-right: auto;
-  border-bottom-left-radius: 0;
+  background-color: #374151; /* tailwind gray-700 */
+  color: #fff;
+  align-self: flex-start;
 }
 
-/* ===== Yazıyor Animasyonu ===== */
 .typing-indicator {
   display: flex;
+  gap: 5px;
   align-items: center;
-  margin-bottom: 1rem;
-  height: 24px;
 }
 
 .typing-indicator span {
-  height: 8px;
   width: 8px;
-  background-color: #9880ff;
+  height: 8px;
+  background: #4ade80;
   border-radius: 50%;
-  margin: 0 4px;
-  animation: bounce 0.6s infinite alternate;
+  animation: blink 1.4s infinite;
 }
 
 .typing-indicator span:nth-child(2) {
@@ -111,94 +39,16 @@ body {
   animation-delay: 0.4s;
 }
 
-@keyframes bounce {
-  to {
-    transform: translateY(-6px);
+@keyframes blink {
+  0%, 80%, 100% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 1;
   }
 }
 
-/* ===== Scrollbar ===== */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #00FFB3;
-  border-radius: 10px;
-  border: 2px solid #1a1a1a;
-}
-
-/* ===== Input ve Button ===== */
-.input-container {
-  display: flex;
-  padding: 1rem 0;
-  border-top: 1px solid #333;
-  background-color: #111;
-}
-
-input[type="text"] {
-  flex-grow: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 20px;
-  font-size: 1rem;
-  color: #fff;
-  background-color: #222;
-  transition: box-shadow 0.3s ease;
-}
-
-input[type="text"]:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px #10b981;
-}
-
-button.send-btn {
-  margin-left: 1rem;
-  padding: 0 1.5rem;
-  background-color: #10b981;
-  border: none;
-  border-radius: 20px;
-  color: #fff;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-button.send-btn:hover {
-  background-color: #0e976d;
-  transform: translateY(-2px);
-}
-
-button.send-btn:active {
-  transform: translateY(0);
-}
-
-/* ===== Chat Listesi Öğeleri ===== */
-.chat-list {
-  margin-top: 2rem;
-}
-
-.chat-item {
-  padding: 0.75rem 1rem;
-  background-color: #2d2d2d;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  color: #ddd;
-}
-
-.chat-item:hover {
-  background-color: #3d3d3d;
-}
-
-.chat-item.active {
-  background-color: #065f46;
-  color: #fff;
+/* Chat sidebar toggling on mobile */
+.sidebar.open {
+  display: flex !important;
 }
