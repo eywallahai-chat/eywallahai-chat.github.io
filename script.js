@@ -1,5 +1,3 @@
-import { egitim } from './egitim.js';
-
 // DOM Elements
 const chatInput = document.getElementById('userInput');
 const sendMessageBtn = document.getElementById('sendMessageBtn');
@@ -11,20 +9,10 @@ const deleteChatBtn = document.getElementById('deleteChatBtn');
 const chatListEl = document.getElementById('chatList');
 const searchChats = document.getElementById('searchChats');
 
-// Constants
 const CHAT_PREFIX = 'chat_';
 const IDS_KEY = 'chat_ids_v1';
 let currentChatId = null;
 let messages = [];
-
-// Karakter temizleme fonksiyonu
-function sanitizeText(text) {
-    if (typeof text !== 'string') return '';
-    return text
-        .replace(/[\u2010-\u2015]/g, "-") // tüm özel tireleri normal tireye çevir
-        .replace(/[\u2018\u2019]/g, "'")   // özel tırnakları normal tırnağa çevir
-        .replace(/[\u201C\u201D]/g, '"');  // özel çift tırnakları normal çift tırnağa çevir
-}
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,7 +52,7 @@ function autoResize() {
     chatInput.style.height = Math.min(chatInput.scrollHeight, window.innerHeight * 0.4) + 'px';
 }
 
-// UI Functions
+// Sidebar toggle for mobile
 function toggleSidebar() {
     sidebar?.classList.toggle('open');
 }
@@ -80,7 +68,7 @@ function loadChatIds() {
         if (!raw) return [];
         const arr = JSON.parse(raw);
         if (!Array.isArray(arr)) return [];
-        
+
         const mapped = arr.map(id => {
             const item = localStorage.getItem(createChatKey(id));
             if (!item) return null;
@@ -90,7 +78,7 @@ function loadChatIds() {
                 return null;
             }
         }).filter(Boolean);
-        
+
         mapped.sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
         return mapped.map(x => x.id);
     } catch(e) {
@@ -113,11 +101,11 @@ function renderChatList(filter = '') {
     ids.forEach(id => {
         const raw = localStorage.getItem(createChatKey(id));
         if (!raw) return;
-        
+
         const obj = JSON.parse(raw);
         const title = obj.title || (obj.messages?.[0]?.content || 'Yeni Sohbet').slice(0, 50);
         const last = obj.lastUpdated ? new Date(obj.lastUpdated).toLocaleString() : '';
-        
+
         if (filter && !title.toLowerCase().includes(filter.toLowerCase())) return;
 
         const item = createChatListItem(id, title, last);
@@ -130,18 +118,19 @@ function renderChatList(filter = '') {
 
 function createChatListItem(id, title, lastUpdated) {
     const item = document.createElement('div');
-    item.className = 'chat-item';
-    if (id === currentChatId) item.classList.add('active');
+    item.className = 'chat-item cursor-pointer px-3 py-2 rounded hover:bg-gray-700 flex justify-between items-center';
+    if (id === currentChatId) item.classList.add('bg-gray-700');
 
     const left = document.createElement('div');
+    left.className = 'flex flex-col';
     const titleEl = document.createElement('div');
     titleEl.textContent = title;
-    titleEl.className = 'meta';
-    
+    titleEl.className = 'font-semibold text-sm truncate max-w-[12rem]';
+
     const subEl = document.createElement('div');
     subEl.textContent = lastUpdated;
-    subEl.className = 'time';
-    
+    subEl.className = 'text-xs text-gray-400';
+
     left.appendChild(titleEl);
     left.appendChild(subEl);
 
@@ -150,13 +139,14 @@ function createChatListItem(id, title, lastUpdated) {
     item.appendChild(left);
     item.appendChild(right);
     item.addEventListener('click', () => selectChat(id));
-    
+
     return item;
 }
 
 function createChatItemButtons(id) {
     const right = document.createElement('div');
-    
+    right.className = 'flex gap-2';
+
     const openBtn = document.createElement('button');
     openBtn.innerText = 'Aç';
     openBtn.className = 'px-3 py-1 rounded-md bg-gray-800 text-sm';
@@ -167,7 +157,7 @@ function createChatItemButtons(id) {
 
     const delBtn = document.createElement('button');
     delBtn.innerText = 'Sil';
-    delBtn.className = 'ml-2 px-3 py-1 rounded-md bg-red-700 text-sm';
+    delBtn.className = 'px-3 py-1 rounded-md bg-red-700 text-sm';
     delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if(confirm('Sohbeti silmek istediğinize emin misiniz?')) removeChat(id);
@@ -182,16 +172,11 @@ function createChatItemButtons(id) {
 function selectChat(id) {
     const raw = localStorage.getItem(createChatKey(id));
     if (!raw) return startNewChat();
-    
-    try {
-        const obj = JSON.parse(raw);
-        currentChatId = id;
-        messages = Array.isArray(obj.messages) ? obj.messages : [];
-    } catch {
-        startNewChat();
-        return;
-    }
-    
+
+    const obj = JSON.parse(raw);
+    currentChatId = id;
+    messages = Array.isArray(obj.messages) ? obj.messages : [];
+
     renderMessages();
     updateChatList(id);
     sidebar?.classList.remove('open');
@@ -208,11 +193,11 @@ function startNewChat(focus = true) {
     const id = Date.now().toString();
     currentChatId = id;
     messages = [];
-    
+
     saveCurrentChat();
     renderMessages();
     updateChatList(id);
-    
+
     if (focus && chatInput) {
         chatInput.value = '';
         autoResize();
@@ -224,7 +209,7 @@ function removeChat(id) {
     localStorage.removeItem(createChatKey(id));
     const ids = loadChatIds().filter(x => x !== id);
     saveChatIds(ids);
-    
+
     if (id === currentChatId) {
         if (ids.length) selectChat(ids[0]);
         else startNewChat();
@@ -240,14 +225,14 @@ function deleteCurrentChat() {
 
 function saveCurrentChat() {
     if (!currentChatId) return;
-    
+
     const data = {
         id: currentChatId,
         messages,
         lastUpdated: new Date().toISOString(),
         title: generateTitleFromMessages(messages) || `Sohbet ${new Date().toLocaleString()}`
     };
-    
+
     localStorage.setItem(createChatKey(currentChatId), JSON.stringify(data));
 }
 
@@ -269,49 +254,38 @@ function displayMessage(role, content) {
     if (!chatArea) return;
     const div = document.createElement('div');
     div.classList.add('message', role === 'assistant' ? 'ai' : role === 'user' ? 'user' : role);
-    
+
     if (role === 'assistant' || role === 'ai') {
         div.innerHTML = formatMarkdown(sanitizeText(content));
     } else {
         div.textContent = content;
     }
-    
+
     chatArea.appendChild(div);
     scrollToBottom();
 }
 
 function scrollToBottom() {
-    if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+    if (!chatArea) return;
+    chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-// Loading Indicator Functions
-function displayTypingIndicator() {
-    if (document.getElementById('typingIndicator')) return;
-    
-    const indicator = document.createElement('div');
-    indicator.id = 'typingIndicator';
-    indicator.className = 'message ai';
-    indicator.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
-    
-    chatArea?.appendChild(indicator);
-    scrollToBottom();
+function sanitizeText(text) {
+    return text
+        .replace(/[\u2010-\u2015]/g, "-") // tüm özel tireleri normal tireye çevir
+        .replace(/[\u2018\u2019]/g, "'")   // özel tırnakları normal tırnağa çevir
+        .replace(/[\u201C\u201D]/g, '"');  // özel çift tırnakları normal çift tırnağa çevir
 }
 
-function removeTypingIndicator() {
-    document.getElementById('typingIndicator')?.remove();
-}
-
-// Markdown Formatting
 function formatMarkdown(text = '') {
     const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     let out = esc(text);
-    
-    // Basic Markdown formatting
-    out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');  // Bold
-    out = out.replace(/\*(.+?)\*/g, '<em>$1</em>');             // Italic
-    out = out.replace(/`([^`]+)`/g, '<code>$1</code>');         // Code
-    out = out.replace(/\n/g, '<br>');                           // Line breaks
-    
+
+    out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    out = out.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+    out = out.replace(/\n/g, '<br>');
+
     return out;
 }
 
@@ -320,16 +294,13 @@ async function handleSend() {
     const text = chatInput?.value.trim();
     if (!text) return;
 
-    // Local message display
     displayMessage('user', text);
     messages.push({ role: 'user', content: text });
     saveCurrentChat();
-    
-    if (chatInput) {
-        chatInput.value = '';
-        autoResize();
-    }
-    
+
+    chatInput.value = '';
+    autoResize();
+
     displayTypingIndicator();
 
     try {
@@ -341,23 +312,19 @@ async function handleSend() {
 
         if (!resp.ok) {
             const txt = await resp.text();
-            console.error('Function returned error', resp.status, txt);
             throw new Error(`HTTP ${resp.status}: ${txt}`);
         }
 
         const data = await resp.json();
         removeTypingIndicator();
 
-        // Handle OpenRouter response
         const aiText = extractAIResponse(data);
         displayMessage('assistant', aiText);
         messages.push({ role: 'assistant', content: aiText });
         saveCurrentChat();
-        
+
     } catch (err) {
-        console.error('Send error:', err);
         removeTypingIndicator();
-        
         const errorMessage = `Üzgünüm, bir hata oluştu: ${err.message}`;
         displayMessage('assistant', errorMessage);
         messages.push({ role: 'assistant', content: errorMessage });
@@ -368,7 +335,7 @@ async function handleSend() {
 function extractAIResponse(data) {
     if (data?.choices?.[0]?.message?.content) {
         const content = data.choices[0].message.content;
-        
+
         if (typeof content === 'string') {
             return content;
         }
@@ -381,17 +348,27 @@ function extractAIResponse(data) {
         }
         return JSON.stringify(content);
     }
-    
+
     if (data?.error) {
         throw new Error(data.error);
     }
-    
+
     throw new Error('Geçersiz API yanıtı');
 }
 
-// Export for use in other modules if needed
-export {
-    startNewChat,
-    handleSend,
-    sanitizeText
-};
+// Loading Indicator
+function displayTypingIndicator() {
+    if (document.getElementById('typingIndicator')) return;
+
+    const indicator = document.createElement('div');
+    indicator.id = 'typingIndicator';
+    indicator.className = 'message ai';
+    indicator.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+
+    chatArea?.appendChild(indicator);
+    scrollToBottom();
+}
+
+function removeTypingIndicator() {
+    document.getElementById('typingIndicator')?.remove();
+}
